@@ -19,7 +19,8 @@ const TD = styled.td`
   text-align: right;
   padding: 6px;
   border: 1px solid #ccc;
-  background-color: #E6F0FF;
+  /* ✅ Single row table, column odd/even color */
+  background-color: ${(props) => (props.isEvenCol ? "#D9E8FF" : "#E6F0FF")};
 `;
 
 const HorizontalOneRowTable = ({ columns, row }) => {
@@ -35,7 +36,9 @@ const HorizontalOneRowTable = ({ columns, row }) => {
       <tbody>
         <tr>
           {row.map((val, i) => (
-            <TD key={i}>{val || "-"}</TD>
+            <TD key={i} isEvenCol={i % 2 === 0}>
+              {val || "-"}
+            </TD>
           ))}
         </tr>
       </tbody>

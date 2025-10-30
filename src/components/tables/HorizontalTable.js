@@ -19,7 +19,15 @@ const TD = styled.td`
   text-align: right;
   padding: 6px;
   border: 1px solid #ccc;
-  background-color: ${(props) => props.bg || "#fff"};
+  /* ✅ Adjust background color by row and column */
+  background-color: ${(props) =>
+    props.isEvenRow
+      ? props.isEvenCol
+        ? "#D9E8FF"
+        : "#E6F0FF"
+      : props.isEvenCol
+      ? "#F8F8F8"
+      : "#FFFFFF"};
 `;
 
 const HorizontalTable = ({ columns, rows }) => {
@@ -33,13 +41,17 @@ const HorizontalTable = ({ columns, rows }) => {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, ri) => (
-          <tr key={ri}>
-            {row.map((val, ci) => (
-              <TD key={ci} bg={ri % 2 === 0 ? "#E6F0FF" : "#FFFFFF"}>
-                {val || "-"}
-              </TD>
-            ))}
+        {rows.map((row, rIdx) => (
+          <tr key={rIdx}>
+            {row.map((val, cIdx) => {
+              const isEvenRow = rIdx % 2 === 0;
+              const isEvenCol = cIdx % 2 === 0;
+              return (
+                <TD key={cIdx} isEvenRow={isEvenRow} isEvenCol={isEvenCol}>
+                  {val || "-"}
+                </TD>
+              );
+            })}
           </tr>
         ))}
       </tbody>

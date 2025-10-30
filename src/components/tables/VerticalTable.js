@@ -20,20 +20,34 @@ const TD = styled.td`
   text-align: right;
   padding: 6px;
   border: 1px solid #ccc;
+  /* ✅ Set background color based on row and column */
+  background-color: ${(props) =>
+    props.isEvenRow
+      ? props.isEvenCol
+        ? "#D9E8FF" // slightly different shade for even column
+        : "#E6F0FF" // row default color for odd column
+      : props.isEvenCol
+      ? "#F8F8F8" // slightly different shade for even column in white row
+      : "#FFFFFF"}; // row default color for odd column
 `;
 
-const TR = styled.tr`
-  background-color: ${(props) => (props.isEven ? "#e6f0ff" : "#ffffff")};
-`;
+const TR = styled.tr``;
 
 const VerticalTable = ({ rows }) => {
   return (
     <Table>
       <tbody>
-        {rows.map((row, i) => (
-          <TR key={i} isEven={i % 2 === 0}>
-            <TH>{row[0]}</TH>
-            <TD>{row[1] || "-"}</TD>
+        {rows.map((row, rIdx) => (
+          <TR key={rIdx}>
+            {row.map((cell, cIdx) => {
+              const isEvenRow = rIdx % 2 === 0;
+              const isEvenCol = cIdx % 2 === 0;
+              return (
+                <TD key={cIdx} isEvenRow={isEvenRow} isEvenCol={isEvenCol}>
+                  {cell || "-"}
+                </TD>
+              );
+            })}
           </TR>
         ))}
       </tbody>
