@@ -1,53 +1,38 @@
 import React from "react";
+import styled from "styled-components";
 import HorizontalTable from "./tables/HorizontalTable";
 import VerticalTable from "./tables/VerticalTable";
-import styled from "styled-components";
 
-// ✅ Wrapper for each table
-const Wrapper = styled.div`
-  margin-bottom: 2rem;
-  direction: rtl;
+const Section = styled.div`
+  margin-bottom: 30px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 18px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 `;
 
-// ✅ Table title styling
-const Title = styled.h3`
-  text-align: center;
-  margin-bottom: 0.2rem;
-  color: #1a4b7a;
+const Title = styled.h2`
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: #2c3e50;
+  font-weight: 600;
+  border-bottom: 2px solid #d0d8e0;
+  padding-bottom: 6px;
 `;
 
-// ✅ Table description styling
-const Description = styled.p`
-  text-align: center;
-  font-style: italic;
-  color: #505050;
-  margin-bottom: 0.5rem;
-`;
-
-const TableSection = ({ tableData }) => {
-  if (!tableData) return null;
-
-  const {
-    table_name,
-    description,
-    titles = [],
-    data = [],
-    direction = "horizontal", // <- use this to determine table layout
-  } = tableData;
-
-  if (!table_name && (!data || data.length === 0)) return null;
+const TableSection = ({ table }) => {
+  if (!table || !table.data) return null;
 
   return (
-    <Wrapper>
-      {table_name && <Title>{table_name}</Title>}
-      {description && <Description>{description}</Description>}
-
-      {direction === "vertical" ? (
-        <VerticalTable table={{ titles, data }} />
+    <Section>
+      <Title>{table.table_name}</Title>
+      {table.direction === "horizontal" ? (
+        <HorizontalTable table={table} />
       ) : (
-        <HorizontalTable table={{ titles, data }} />
+        <VerticalTable table={table} />
       )}
-    </Wrapper>
+    </Section>
   );
 };
 

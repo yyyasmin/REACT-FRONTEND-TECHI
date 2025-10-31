@@ -1,61 +1,59 @@
 import React from "react";
 import styled from "styled-components";
 
-// ---------- Styled Components ----------
-const TableContainer = styled.div`
-  margin-bottom: 2rem;
-  overflow-x: auto;
-`;
-
 const Table = styled.table`
-  width: 100%;
   border-collapse: collapse;
-  border: 1px solid #ccc;
-  font-size: 15px;
+  width: 100%;
   background-color: #fff;
+  font-family: "Arial", sans-serif;
 `;
 
-const TH = styled.th`
-  width: 35%;
-  padding: 8px;
-  text-align: right;
-  border: 1px solid #ccc;
-  font-weight: bold;
-  background-color: ${(props) => (props.isEvenRow ? "#70a0d6" : "#8bb8e8")};
-  color: white;
-`;
+const Tr = styled.tr`
+  background-color: ${({ index }) => (index % 2 === 0 ? "#f8fafc" : "#edf2f7")};
 
-const TD = styled.td`
-  width: 65%;
-  padding: 8px;
-  text-align: right;
-  border: 1px solid #ccc;
-  background-color: ${(props) => (props.isEvenRow ? "#f0f6ff" : "#eef5ff")};
-`;
-
-// ---------- Component ----------
-const VerticalTable = ({ table }) => {
-  if (!table || !table.data || !Array.isArray(table.data)) {
-    return <div>לא נמצא מידע להצגה</div>;
+  &:hover {
+    background-color: #e4ebf5;
   }
+`;
 
+const Th = styled.th`
+  border: 1px solid #aaa;
+  padding: 8px;
+  text-align: right;
+  width: 35%;
+  background-color: ${({ rowIndex }) =>
+    rowIndex % 2 === 0 ? "#dce8ff" : "#d4e2ff"};
+  font-weight: bold;
+`;
+
+const Td = styled.td`
+  border: 1px solid #aaa;
+  padding: 8px;
+  text-align: right;
+  background-color: ${({ rowIndex, colIndex }) =>
+    rowIndex % 2 === 0
+      ? colIndex % 2 === 0
+        ? "#f8fafc"
+        : "#f3f6fa"
+      : colIndex % 2 === 0
+      ? "#edf2f7"
+      : "#e9eef5"};
+`;
+
+const VerticalTable = ({ table }) => {
   return (
-    <TableContainer>
-      <Table>
-        <tbody>
-          {table.data.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              <TH isEvenRow={rowIndex % 2 === 0}>
-                {Array.isArray(row) ? row[0] : `שדה ${rowIndex + 1}`}
-              </TH>
-              <TD isEvenRow={rowIndex % 2 === 0}>
-                {Array.isArray(row) ? row.slice(1).join(", ") : row || "-"}
-              </TD>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </TableContainer>
+    <Table>
+      <tbody>
+        {table.data?.map((row, idx) => (
+          <Tr key={idx} index={idx}>
+            <Th rowIndex={idx}>{row[0]}</Th>
+            <Td rowIndex={idx} colIndex={1}>
+              {row[1]}
+            </Td>
+          </Tr>
+        ))}
+      </tbody>
+    </Table>
   );
 };
 
