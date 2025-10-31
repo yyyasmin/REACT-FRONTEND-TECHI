@@ -1,4 +1,5 @@
 import React from "react";
+import VerticalTable from "./VerticalTable";
 import styled from "styled-components";
 
 const Wrapper = styled.div`
@@ -8,28 +9,7 @@ const Wrapper = styled.div`
 
 const Title = styled.h3`
   text-align: center;
-  margin-bottom: 0.5rem;
   color: #1a4b7a;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const TH = styled.th`
-  background-color: #70a0d6;
-  color: white;
-  padding: 8px;
-  border: 1px solid #d0d0d0;
-  text-align: right;
-`;
-
-const TD = styled.td`
-  border: 1px solid #d0d0d0;
-  padding: 8px;
-  text-align: right;
-  background-color: ${(props) => (props.even ? "#f8f9fa" : "white")};
 `;
 
 const DiagnosticsTable = () => {
@@ -42,16 +22,7 @@ const DiagnosticsTable = () => {
   return (
     <Wrapper>
       <Title>פירוט אבחונים</Title>
-      <Table>
-        <tbody>
-          {rows.map(([label, value], i) => (
-            <tr key={i}>
-              <TH>{label}</TH>
-              <TD even={i % 2 === 0}>{value}</TD>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <VerticalTable rows={rows} />
     </Wrapper>
   );
 };

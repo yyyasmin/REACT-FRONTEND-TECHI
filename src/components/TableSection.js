@@ -1,7 +1,28 @@
 import React from "react";
 import HorizontalTable from "./tables/HorizontalTable";
-import HorizontalOneRowTable from "./tables/HorizontalOneRowTable";
 import VerticalTable from "./tables/VerticalTable";
+import styled from "styled-components";
+
+// ✅ Wrapper for each table
+const Wrapper = styled.div`
+  margin-bottom: 2rem;
+  direction: rtl;
+`;
+
+// ✅ Table title styling
+const Title = styled.h3`
+  text-align: center;
+  margin-bottom: 0.2rem;
+  color: #1a4b7a;
+`;
+
+// ✅ Table description styling
+const Description = styled.p`
+  text-align: center;
+  font-style: italic;
+  color: #505050;
+  margin-bottom: 0.5rem;
+`;
 
 const TableSection = ({ tableData }) => {
   if (!tableData) return null;
@@ -9,99 +30,24 @@ const TableSection = ({ tableData }) => {
   const {
     table_name,
     description,
-    columns = [],
-    rows = [],
-    direction = "horizontal", // <-- NEW unified key
+    titles = [],
+    data = [],
+    direction = "horizontal", // <- use this to determine table layout
   } = tableData;
 
-  // ✅ תחומי עניין וחוזקות stays horizontal
-  if (table_name === "תחומי עניין וחוזקות" && rows.length > 0) {
-    return (
-      <div style={{ marginBottom: "2rem" }}>
-        <h3 style={{ textAlign: "center", marginBottom: "0.2rem" }}>{table_name}</h3>
-        {description && (
-          <p
-            style={{
-              textAlign: "center",
-              fontStyle: "italic",
-              color: "#505050",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {description}
-          </p>
-        )}
-        <HorizontalTable columns={columns} rows={rows} />
-      </div>
-    );
-  }
+  if (!table_name && (!data || data.length === 0)) return null;
 
-  // ✅ פרטים אישיים stays horizontal split
-  if (table_name === "פרטים אישיים" && rows.length > 0) {
-    const firstGroup = rows.slice(0, 6);
-    const secondGroup = rows.slice(6);
-
-    const firstColumns = firstGroup.map((r) => r[0]);
-    const firstRow = firstGroup.map((r) => r[1]);
-
-    const secondColumns = secondGroup.map((r) => r[0]);
-    const secondRow = secondGroup.map((r) => r[1]);
-
-    return (
-      <div style={{ marginBottom: "2rem" }}>
-        <h3 style={{ textAlign: "center", marginBottom: "0.2rem" }}>{table_name}</h3>
-        {description && (
-          <p
-            style={{
-              textAlign: "center",
-              fontStyle: "italic",
-              color: "#505050",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {description}
-          </p>
-        )}
-        <HorizontalOneRowTable columns={firstColumns} row={firstRow} />
-        {secondGroup.length > 0 && (
-          <>
-            <h4 style={{ textAlign: "center", marginTop: "1rem", marginBottom: "0.5rem" }}>
-              פרטי בית הספר
-            </h4>
-            <HorizontalOneRowTable columns={secondColumns} row={secondRow} />
-          </>
-        )}
-      </div>
-    );
-  }
-
-  // ✅ All other tables use direction from JSON
   return (
-    <div style={{ marginBottom: "2rem" }}>
-      {table_name && (
-        <h3 style={{ textAlign: "center", marginBottom: "0.2rem" }}>{table_name}</h3>
-      )}
-      {description && (
-        <p
-          style={{
-            textAlign: "center",
-            fontStyle: "italic",
-            color: "#505050",
-            marginBottom: "0.5rem",
-          }}
-        >
-          {description}
-        </p>
-      )}
+    <Wrapper>
+      {table_name && <Title>{table_name}</Title>}
+      {description && <Description>{description}</Description>}
 
       {direction === "vertical" ? (
-        <VerticalTable rows={rows} />
-      ) : rows.length === 1 ? (
-        <HorizontalOneRowTable columns={columns} row={rows[0]} />
+        <VerticalTable table={{ titles, data }} />
       ) : (
-        <HorizontalTable columns={columns} rows={rows} />
+        <HorizontalTable table={{ titles, data }} />
       )}
-    </div>
+    </Wrapper>
   );
 };
 

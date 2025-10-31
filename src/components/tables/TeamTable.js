@@ -1,4 +1,5 @@
 import React from "react";
+import HorizontalTable from "./HorizontalTable";
 import styled from "styled-components";
 
 const Wrapper = styled.div`
@@ -12,46 +13,15 @@ const Title = styled.h3`
   color: #1a4b7a;
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 2rem;
-  background-color: white;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-`;
-
-const TH = styled.th`
-  text-align: right;
-  background-color: #70a0d6;
-  color: white;
-  padding: 8px;
-  border: 1px solid #ccc;
-  width: 30%;
-`;
-
-const TD = styled.td`
-  text-align: right;
-  padding: 8px;
-  border: 1px solid #ccc;
-  background-color: ${(props) => (props.even ? "#f8f9fa" : "#ffffff")};
-`;
-
-export default function TeamTable({ rows, table_name }) {
+const TeamTable = ({ table_name, columns, rows }) => {
   if (!rows || rows.length === 0) return null;
 
   return (
     <Wrapper>
       <Title>{table_name}</Title>
-      <Table>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i}>
-              <TH>{row[0]}</TH>
-              <TD even={i % 2 === 0}>{row[1]}</TD>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <HorizontalTable columns={columns} rows={rows} />
     </Wrapper>
   );
-}
+};
+
+export default TeamTable;

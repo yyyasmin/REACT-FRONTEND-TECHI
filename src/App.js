@@ -29,7 +29,7 @@ const Select = styled.select`
   display: block;
   margin-right: auto;
   margin-left: auto;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   &:focus {
     outline: none;
     border-color: #70a0d6;
@@ -48,12 +48,30 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchStudentList()
-      .then((data) => {
-        console.log("Fetched student names:", data);
-        setStudents(data);
-      })
-      .catch((err) => console.error("Failed to fetch student list:", err));
+    const loadStudents = async () => {
+      try {
+        const data = await fetchStudentList();
+        console.log("Fetched student list raw:", data);
+
+        // ✅ Handle different possible backend formats gracefully
+        let studentNames = [];
+        if (Array.isArray(data)) {
+          studentNames = data;
+        } else if (data && Array.isArray(data.students)) {
+          studentNames = data.students;
+        } else if (data && typeof data === "object") {
+          // Fallback: if object with key-value pairs
+          studentNames = Object.values(data);
+        }
+
+        console.log("Processed student names:", studentNames);
+        setStudents(studentNames);
+      } catch (err) {
+        console.error("Failed to fetch student list:", err);
+      }
+    };
+
+    loadStudents();
   }, []);
 
   const handleSelectChange = async (e) => {
@@ -88,8 +106,8 @@ function App() {
 
       <Select value={selectedStudent} onChange={handleSelectChange}>
         <option value="">בחר תלמיד</option>
-        {students.map((name) => (
-          <option key={name} value={name}>
+        {students.map((name, idx) => (
+          <option key={idx} value={name}>
             {name}
           </option>
         ))}
@@ -97,15 +115,19 @@ function App() {
 
       {loading && <LoadingText>טוען נתונים...</LoadingText>}
 
-      {!loading && studentData.length > 0 &&
+      {!loading &&
+        studentData.length > 0 &&
         studentData.map((table, idx) =>
           isTeamTable(table.table_name) ? (
-            <TeamTable key={idx} rows={table.rows} table_name={table.table_name} />
+            <TeamTable
+              key={idx}
+              rows={table.rows}
+              table_name={table.table_name}
+            />
           ) : (
             <TableSection key={idx} tableData={table} />
           )
-        )
-      }
+        )}
     </Container>
   );
 }
