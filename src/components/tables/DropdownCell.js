@@ -36,7 +36,7 @@ export default function DropdownCell({ value, options, type, onChange }) {
     onChange(inputValue);
   };
 
-  // ✅ Checkbox type
+  // Checkbox type
   if (type === "checkbox") {
     return (
       <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
@@ -68,7 +68,7 @@ export default function DropdownCell({ value, options, type, onChange }) {
     );
   }
 
-  // ✅ Date type
+  // Date type
   if (type === "date") {
     return (
       <input
@@ -88,7 +88,37 @@ export default function DropdownCell({ value, options, type, onChange }) {
     );
   }
 
-  // ✅ Dropdown type
+  // Long text type (large textarea)
+// Long text type (large textarea, auto-resizing)
+if (type === "longtext") {
+  return (
+    <textarea
+      value={inputValue}
+      onChange={(e) => {
+        setInputValue(e.target.value);
+        onChange(e.target.value);
+
+        // Auto-resize: reset height and set new scrollHeight
+        e.target.style.height = "auto";
+        e.target.style.height = e.target.scrollHeight + "px";
+      }}
+      onBlur={handleInputBlur}
+      rows={5} // initial height (smaller)
+      style={{
+        width: "95%",
+        fontSize: "16px",
+        padding: "10px",
+        backgroundColor: "#f0f8ff",
+        border: "1px solid #ccc",
+        borderRadius: "4px",
+        resize: "none", // users can't manually resize, automatic resizing handles it
+        overflow: "hidden", // hide scrollbar
+      }}
+    />
+  );
+}
+
+  // Dropdown type
   if (options && Array.isArray(options) && options.length > 0) {
     return (
       <div>
@@ -125,7 +155,7 @@ export default function DropdownCell({ value, options, type, onChange }) {
     );
   }
 
-  // ✅ Regular text editable fallback
+  // Regular text input
   return (
     <input
       type="text"
