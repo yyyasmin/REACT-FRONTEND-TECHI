@@ -1,5 +1,7 @@
+// File: src/components/tables/VerticalTable.js
 import React from "react";
 import styled from "styled-components";
+import DropdownCell from "./DropdownCell"; // ✅ import at top
 
 const Table = styled.table`
   border-collapse: collapse;
@@ -39,12 +41,11 @@ const Td = styled.td`
       : "#e9eef5"};
 `;
 
-// ✅ helper to safely render any value
 const safeRender = (val) => {
   if (val == null) return "";
   if (typeof val === "object") {
-    if ("value" in val) return val.value; // show dropdown selection
-    return JSON.stringify(val); // fallback for other object types
+    if ("value" in val) return val.value;
+    return JSON.stringify(val);
   }
   return String(val);
 };
@@ -57,7 +58,13 @@ const VerticalTable = ({ table }) => {
           <Tr key={idx} $index={idx}>
             <Th $rowIndex={idx}>{safeRender(row[0])}</Th>
             <Td $rowIndex={idx} $colIndex={1}>
-              {safeRender(row[1])}
+              <DropdownCell
+                value={row[1]}
+                type="text"
+                onChange={(val) => {
+                  row[1] = val;
+                }}
+              />
             </Td>
           </Tr>
         ))}
