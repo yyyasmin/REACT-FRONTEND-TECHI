@@ -1,66 +1,106 @@
 import React from "react";
-import styled from "styled-components";
+import DropdownCell from "./DropdownCell";
 
-const Table = styled.table`
-  border-collapse: collapse;
-  width: 100%;
-  background-color: #fff;
-  font-family: "Arial", sans-serif;
-`;
+const HorizontalTable = ({ title, data = [], headers = [], dropdownOptions = {}, onDataChange }) => {
+  const handleCellChange = (rowIndex, colKey, newValue) => {
+    const updatedData = [...data];
+    if (!updatedData[rowIndex]) updatedData[rowIndex] = {};
+    // Support both array and object data formats
+    if (Array.isArray(updatedData[rowIndex])) {
+      updatedData[rowIndex][headers.indexOf(colKey)] = newValue;
+    } else {
+      updatedData[rowIndex][colKey] = newValue;
+    }
+    if (onDataChange) onDataChange(updatedData);
+  };
 
-const Th = styled.th`
-  border: 1px solid #aaa;
-  padding: 10px;
-  text-align: center;
-  background-color: #d9e8ff; /* Highlighted header */
-  font-weight: bold;
-  font-size: 15px;
-`;
-
-const Tr = styled.tr`
-  background-color: ${({ index }) => (index % 2 === 0 ? "#f7f9fc" : "#edf2f7")};
-
-  &:hover {
-    background-color: #e4ebf5;
-  }
-`;
-
-const Td = styled.td`
-  border: 1px solid #aaa;
-  padding: 8px;
-  text-align: center;
-  background-color: ${({ rowIndex, colIndex }) =>
-    rowIndex % 2 === 0
-      ? colIndex % 2 === 0
-        ? "#f7f9fc"
-        : "#f1f4fa"
-      : colIndex % 2 === 0
-      ? "#edf2f7"
-      : "#e8eef5"};
-`;
-
-const HorizontalTable = ({ table }) => {
   return (
-    <Table>
-      <thead>
-        <tr>
-          {table.titles?.map((title, idx) => (
-            <Th key={idx}>{title}</Th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {table.data?.map((row, rIdx) => (
-          <Tr key={rIdx} index={rIdx}>
-            {row.map((cell, cIdx) => (
-              <Td key={cIdx} rowIndex={rIdx} colIndex={cIdx}>
-                {cell}
-              </Td>
+    <div
+      style={{
+        margin: "20px auto",
+        width: "98%",
+        backgroundColor: "#ffffff",
+        borderRadius: "12px",
+        boxShadow: "0px 2px 6px rgba(0,0,0,0.1)",
+        overflowX: "auto",
+        direction: "rtl",
+      }}
+    >
+      {title && (
+        <h3
+          style={{
+            textAlign: "center",
+            padding: "10px",
+            backgroundColor: "#e6f0ff",
+            margin: 0,
+            borderTopLeftRadius: "12px",
+            borderTopRightRadius: "12px",
+          }}
+        >
+          {title}
+        </h3>
+      )}
+
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "18px" }}>
+        <thead>
+          <tr style={{ backgroundColor: "#f2f7ff" }}>
+            {headers && headers.map((header, idx) => (
+              <th
+                key={idx}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "10px",
+                  textAlign: "center",
+                }}
+              >
+                {header}
+              </th>
             ))}
-          </Tr>
-        ))}
-      </tbody>
-    </Table>
+          </tr>
+        </thead>
+
+        <tbody>
+          {data && data.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {headers.map((colKey, colIndex) => {
+                // Support both array and object rows
+                const cell = Array.isArray(row) ? row[colIndex] : row[colKey];
+                const cellValue = cell?.value ?? cell ?? "";
+                const options = cell?.options ?? dropdownOptions[colKey] ?? [];
+                const type =
+                  cell?.type ||
+                  (typeof cellValue === "boolean" || cellValue === "כן" || cellValue === "לא"
+                    ? "checkbox"
+                    : colKey.toLowerCase().includes("תאריך")
+                    ? "date"
+                    : options.length > 0
+                    ? "dropdown"
+                    : "text");
+
+                return (
+                  <td
+                    key={colIndex}
+                    style={{
+                      border: "1px solid #ccc",
+                      padding: "6px",
+                      textAlign: "center",
+                      backgroundColor: "#fafcff",
+                    }}
+                  >
+                    <DropdownCell
+                      value={cellValue}
+                      options={options}
+                      type={type}
+                      onChange={(val) => handleCellChange(rowIndex, colKey, val)}
+                    />
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 

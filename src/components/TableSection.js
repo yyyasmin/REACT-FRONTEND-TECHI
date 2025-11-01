@@ -28,7 +28,12 @@ const TableSection = ({ table }) => {
     <Section>
       <Title>{table.table_name}</Title>
       {table.direction === "horizontal" ? (
-        <HorizontalTable table={table} />
+        <HorizontalTable
+          title={table.table_name}
+          headers={table.titles || []}
+          data={table.data || []}
+          dropdownOptions={table.dropdowns ?? {}}
+        />
       ) : (
         <VerticalTable table={table} />
       )}
