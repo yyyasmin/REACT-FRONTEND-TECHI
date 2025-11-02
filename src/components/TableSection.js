@@ -8,7 +8,7 @@ const Section = styled.div`
   border: 2px solid #ccc;
   border-radius: 12px;
   padding: 18px;
-  background-color: #f9f9f9;
+  background-color: #f9f9fa9;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 `;
 

@@ -118,42 +118,53 @@ if (type === "longtext") {
   );
 }
 
-  // Dropdown type
-  if (options && Array.isArray(options) && options.length > 0) {
-    return (
-      <div>
-        <select
-          value={options.includes(inputValue) ? inputValue : ""}
-          onChange={handleSelectChange}
-          style={{
-            width: "95%",
-            fontSize: "18px",
-            backgroundColor: "#f0f8ff",
-            padding: "4px",
-          }}
-        >
-          <option value="">בחר...</option>
-          {options.map((opt, idx) => (
-            <option key={idx} value={opt}>
-              {opt}
-            </option>
-          ))}
-          <option value="Other">אחר...</option>
-        </select>
 
-        {inputValue && !options.includes(inputValue) && (
-          <input
-            type="text"
-            placeholder="הכנס ערך חדש"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onBlur={handleInputBlur}
-            style={{ width: "95%", marginTop: "5px" }}
-          />
-        )}
-      </div>
-    );
-  }
+// Dropdown type
+if (options && Array.isArray(options) && options.length > 0) {
+  return (
+    <div>
+      <select
+        value={options.some(opt => (typeof opt === "object" ? opt.label : opt) === inputValue) ? inputValue : ""}
+        onChange={(e) => {
+          const val = e.target.value;
+          setInputValue(val);
+          onChange(val);
+        }}
+        style={{
+          width: "95%",
+          fontSize: "18px",
+          backgroundColor: "#f0f8ff",
+          padding: "4px",
+        }}
+      >
+        <option value="">בחר...</option>
+        {options.map((opt, idx) => {
+          const label = typeof opt === "string" ? opt : opt.label;
+          const bgColor = typeof opt === "object" && opt.color ? opt.color : "#f0f8ff";
+          return (
+            <option key={idx} value={label} style={{ backgroundColor: bgColor }}>
+              {label}
+            </option>
+          );
+        })}
+        <option value="Other">אחר...</option>
+      </select>
+
+      {/* Editable input for all options */}
+      <input
+        type="text"
+        placeholder="הכנס ערך חדש"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onBlur={handleInputBlur}
+        style={{ width: "95%", marginTop: "5px" }}
+      />
+    </div>
+  );
+}
+
+
+
 
   // Regular text input
   return (
