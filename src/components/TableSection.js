@@ -4,12 +4,15 @@ import HorizontalTable from "./tables/HorizontalTable";
 import VerticalTable from "./tables/VerticalTable";
 
 const Section = styled.div`
-  margin-bottom: 30px;
+  margin: 20px auto;
   border: 2px solid #ccc;
   border-radius: 12px;
   padding: 18px;
-  background-color: #f9f9fa9;
+  background-color: #f9f9fa;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  width: 1200px; /* ✅ Fixed width for all tables */
+  max-width: 95%;
+  direction: rtl;
 `;
 
 const Title = styled.h2`
@@ -19,6 +22,7 @@ const Title = styled.h2`
   font-weight: 600;
   border-bottom: 2px solid #d0d8e0;
   padding-bottom: 6px;
+  text-align: center;
 `;
 
 const TableSection = ({ table }) => {

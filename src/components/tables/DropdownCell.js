@@ -1,189 +1,149 @@
-// File: src/components/tables/DropdownCell.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import styled from "styled-components";
 
-export default function DropdownCell({ value, options, type, onChange }) {
-  const [inputValue, setInputValue] = useState(value || "");
+const Select = styled.select`
+  width: 95%; /* ✅ Perfect fit inside cells */
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  background-color: #ffffff;
+  color: #2c3e50;
+  outline: none;
+  direction: rtl;
+  text-align: right;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.5em;
+  min-height: 50px;
+  height: auto;
+  resize: none;
+  &:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 3px rgba(74, 144, 226, 0.5);
+  }
+`;
 
+const Option = styled.option`
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.5em;
+  padding: 5px;
+  text-align: right;
+  direction: rtl;
+  color: #2c3e50;
+`;
+
+const Textarea = styled.textarea`
+  width: 88%; /* ✅ Narrower so even long text fits neatly inside */
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  background-color: #ffffff;
+  color: #2c3e50;
+  outline: none;
+  resize: none;
+  overflow: hidden; /* ✅ No scrollbars */
+  min-height: 50px;
+  line-height: 1.5em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  text-align: right;
+  direction: rtl;
+  &:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 3px rgba(74, 144, 226, 0.5);
+  }
+`;
+
+const Checkbox = styled.input`
+  transform: scale(1.4);
+  cursor: pointer;
+`;
+
+const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
+  const [val, setVal] = useState(value || "");
+  const [isEditing, setIsEditing] = useState(false);
+  const textareaRef = useRef(null);
+
+  // ✅ Auto-grow textareas vertically as content expands
   useEffect(() => {
-    if (value !== inputValue) {
-      setInputValue(value || "");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [value]);
+  }, [val, isEditing]);
 
-  const handleSelectChange = (e) => {
-    const val = e.target.value;
-    if (val === "Other") {
-      setInputValue("");
-    } else {
-      setInputValue(val);
-      onChange(val);
-    }
+  const handleDropdownChange = (e) => {
+    const newValue = e.target.value;
+    setVal(newValue);
+    setIsEditing(true); // ✅ All dropdowns editable
+    onChange?.(newValue);
   };
 
-  const handleInputBlur = () => {
-    if (inputValue && options && Array.isArray(options) && !options.includes(inputValue)) {
-      fetch("http://localhost:5000/add_option", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          grade: "A1",
-          subject: "General",
-          field: "strengths",
-          option: inputValue,
-        }),
-      });
-    }
-    onChange(inputValue);
+  const handleTextChange = (e) => {
+    const newValue = e.target.value;
+    setVal(newValue);
+    onChange?.(newValue);
   };
 
-  // Checkbox type
+  if (type === "dropdown") {
+    const dropdownOptions = [...options, { label: "אחר" }];
+    return (
+      <>
+        {!isEditing ? (
+          <Select value={val} onChange={handleDropdownChange}>
+            <Option value="">בחר...</Option>
+            {dropdownOptions.map((opt, i) => (
+              <Option
+                key={i}
+                value={opt.label || opt}
+                style={{ backgroundColor: opt.color || "white" }}
+              >
+                {opt.label || opt}
+              </Option>
+            ))}
+          </Select>
+        ) : (
+          <Textarea
+            ref={textareaRef}
+            value={val}
+            onChange={handleTextChange}
+            placeholder="כתוב כאן..."
+          />
+        )}
+      </>
+    );
+  }
+
   if (type === "checkbox") {
     return (
-      <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-        <label>
-          <input
-            type="radio"
-            name={`yesno-${Math.random()}`}
-            checked={inputValue === true || inputValue === "כן"}
-            onChange={() => {
-              setInputValue("כן");
-              onChange("כן");
-            }}
-          />{" "}
-          כן
-        </label>
-        <label>
-          <input
-            type="radio"
-            name={`yesno-${Math.random()}`}
-            checked={inputValue === false || inputValue === "לא"}
-            onChange={() => {
-              setInputValue("לא");
-              onChange("לא");
-            }}
-          />{" "}
-          לא
-        </label>
-      </div>
-    );
-  }
-
-  // Date type
-  if (type === "date") {
-    return (
-      <input
-        type="date"
-        value={inputValue || ""}
+      <Checkbox
+        type="checkbox"
+        checked={val === "כן"}
         onChange={(e) => {
-          setInputValue(e.target.value);
-          onChange(e.target.value);
-        }}
-        style={{
-          width: "95%",
-          fontSize: "18px",
-          padding: "4px",
-          backgroundColor: "#f0f8ff",
+          const newValue = e.target.checked ? "כן" : "לא";
+          setVal(newValue);
+          onChange?.(newValue);
         }}
       />
     );
   }
 
-  // Long text type (large textarea)
-// Long text type (large textarea, auto-resizing)
-if (type === "longtext") {
+  // ✅ Regular editable text field
   return (
-    <textarea
-      value={inputValue}
-      onChange={(e) => {
-        setInputValue(e.target.value);
-        onChange(e.target.value);
-
-        // Auto-resize: reset height and set new scrollHeight
-        e.target.style.height = "auto";
-        e.target.style.height = e.target.scrollHeight + "px";
-      }}
-      onBlur={handleInputBlur}
-      rows={5} // initial height (smaller)
-      style={{
-        width: "95%",
-        fontSize: "16px",
-        padding: "10px",
-        backgroundColor: "#f0f8ff",
-        border: "1px solid #ccc",
-        borderRadius: "4px",
-        resize: "none", // users can't manually resize, automatic resizing handles it
-        overflow: "hidden", // hide scrollbar
-      }}
+    <Textarea
+      ref={textareaRef}
+      value={val}
+      onChange={handleTextChange}
+      placeholder="הקש כאן להזנת טקסט..."
     />
   );
-}
+};
 
-
-// Dropdown type
-if (options && Array.isArray(options) && options.length > 0) {
-  return (
-    <div>
-      <select
-        value={options.some(opt => (typeof opt === "object" ? opt.label : opt) === inputValue) ? inputValue : ""}
-        onChange={(e) => {
-          const val = e.target.value;
-          setInputValue(val);
-          onChange(val);
-        }}
-        style={{
-          width: "95%",
-          fontSize: "18px",
-          backgroundColor: "#f0f8ff",
-          padding: "4px",
-        }}
-      >
-        <option value="">בחר...</option>
-        {options.map((opt, idx) => {
-          const label = typeof opt === "string" ? opt : opt.label;
-          const bgColor = typeof opt === "object" && opt.color ? opt.color : "#f0f8ff";
-          return (
-            <option key={idx} value={label} style={{ backgroundColor: bgColor }}>
-              {label}
-            </option>
-          );
-        })}
-        <option value="Other">אחר...</option>
-      </select>
-
-      {/* Editable input for all options */}
-      <input
-        type="text"
-        placeholder="הכנס ערך חדש"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onBlur={handleInputBlur}
-        style={{ width: "95%", marginTop: "5px" }}
-      />
-    </div>
-  );
-}
-
-
-
-
-  // Regular text input
-  return (
-    <input
-      type="text"
-      value={inputValue}
-      onChange={(e) => {
-        setInputValue(e.target.value);
-        onChange(e.target.value);
-      }}
-      onBlur={handleInputBlur}
-      style={{
-        width: "95%",
-        fontSize: "16px",
-        backgroundColor: "#f0f8ff",
-        padding: "5px",
-        border: "1px solid #ccc",
-        borderRadius: "4px",
-      }}
-    />
-  );
-}
+export default DropdownCell;

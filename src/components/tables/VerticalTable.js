@@ -1,13 +1,13 @@
-// File: src/components/tables/VerticalTable.js
 import React from "react";
 import styled from "styled-components";
-import DropdownCell from "./DropdownCell"; // ✅ import at top
+import DropdownCell from "./DropdownCell";
 
 const Table = styled.table`
   border-collapse: collapse;
   width: 100%;
   background-color: #fff;
   font-family: "Arial", sans-serif;
+  max-width: 1200px; /* ✅ same fixed width */
 `;
 
 const Tr = styled.tr`
@@ -31,6 +31,7 @@ const Td = styled.td`
   border: 1px solid #aaa;
   padding: 8px;
   text-align: right;
+  vertical-align: top;
   background-color: ${({ $rowIndex, $colIndex }) =>
     $rowIndex % 2 === 0
       ? $colIndex % 2 === 0
@@ -43,33 +44,32 @@ const Td = styled.td`
 
 const safeRender = (val) => {
   if (val == null) return "";
-  if (typeof val === "object") {
-    if ("value" in val) return val.value;
-    return JSON.stringify(val);
-  }
+  if (typeof val === "object" && "value" in val) return val.value;
   return String(val);
 };
 
 const VerticalTable = ({ table }) => {
   return (
-    <Table>
-      <tbody>
-        {table.data?.map((row, idx) => (
-          <Tr key={idx} $index={idx}>
-            <Th $rowIndex={idx}>{safeRender(row[0])}</Th>
-            <Td $rowIndex={idx} $colIndex={1}>
-              <DropdownCell
-                value={row[1]}
-                type="text"
-                onChange={(val) => {
-                  row[1] = val;
-                }}
-              />
-            </Td>
-          </Tr>
-        ))}
-      </tbody>
-    </Table>
+    <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
+      <Table>
+        <tbody>
+          {table.data?.map((row, idx) => (
+            <Tr key={idx} $index={idx}>
+              <Th $rowIndex={idx}>{safeRender(row[0])}</Th>
+              <Td $rowIndex={idx} $colIndex={1}>
+                <DropdownCell
+                  value={row[1]}
+                  type="text"
+                  onChange={(val) => {
+                    row[1] = val;
+                  }}
+                />
+              </Td>
+            </Tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
   );
 };
 
