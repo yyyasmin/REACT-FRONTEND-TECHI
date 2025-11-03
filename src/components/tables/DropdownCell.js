@@ -21,7 +21,7 @@ const Textarea = styled.textarea`
   overflow-wrap: anywhere;
   text-align: right;
   direction: rtl;
-  transition: height 0.2s ease;
+
   &:focus {
     border-color: #4a90e2;
     box-shadow: 0 0 3px rgba(74, 144, 226, 0.5);
@@ -33,18 +33,18 @@ const Checkbox = styled.input`
   cursor: pointer;
 `;
 
-// ✅ Wrapper to ensure dropdown menu appears above other cells
-const CellWrapper = styled.div`
-  position: relative;
-  overflow: visible !important;
-  z-index: 10;
-`;
-
 const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
-  const [val, setVal] = useState(value || "");
+  const [val, setVal] = useState(Array.isArray(value) ? value : value ? [value] : []);
+  const [allOptions, setAllOptions] = useState(
+    options.map((opt) => ({
+      value: opt.value || opt.label || opt,
+      label: opt.label || opt,
+      color: opt.color || "#f2f2f2",
+    }))
+  );
   const textareaRef = useRef(null);
 
-  // ✅ Smooth auto-grow for textarea
+  // Auto-grow textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -54,91 +54,107 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
 
   const handleTextChange = (e) => {
     const newValue = e.target.value;
-    setVal(newValue);
+    setVal([newValue]);
     onChange?.(newValue);
   };
 
-  // ✅ Multi-select dropdown (creatable)
+  // Multi-select dropdown
   if (type === "dropdown") {
-    const dropdownOptions = options.map((opt) => ({
-      value: opt.value || opt.label || opt,
-      label: opt.label || opt,
-    }));
+    const selectedOptions = allOptions.filter((o) => val.includes(o.value));
 
-    const selectedValues = Array.isArray(val)
-      ? val.map((v) => ({
-          value: v,
-          label: dropdownOptions.find((o) => o.value === v)?.label || v,
-        }))
-      : [];
+    const handleChange = (selected) => {
+      const newValues = selected ? selected.map((s) => s.value) : [];
+      setVal(newValues);
+      onChange?.(newValues);
+    };
+
+    const handleCreateOption = (inputValue) => {
+      const newOption = {
+        value: inputValue,
+        label: inputValue,
+        color: "#d9eaf7", // default color for new user options
+      };
+      const updatedOptions = [...allOptions, newOption];
+      setAllOptions(updatedOptions);
+
+      const newValues = [...val, inputValue];
+      setVal(newValues);
+      onChange?.(newValues);
+    };
 
     return (
-      <CellWrapper>
-        <CreatableSelect
-          isMulti
-          value={selectedValues}
-          onChange={(selected) => {
-            const newValues = selected ? selected.map((s) => s.value) : [];
-            setVal(newValues);
-            onChange?.(newValues);
-          }}
-          options={dropdownOptions}
-          placeholder="בחר או הוסף אפשרויות..."
-          isClearable
-          menuPortalTarget={document.body} // ✅ dropdown above all
-          styles={{
-            control: (base) => ({
-              ...base,
-              minHeight: 50,
-              textAlign: "right",
-              direction: "rtl",
-              borderColor: "#ccc",
-            }),
-            menu: (base) => ({
-              ...base,
-              textAlign: "right",
-              direction: "rtl",
-              zIndex: 9999,
-            }),
-            option: (base) => ({
-              ...base,
-              textAlign: "right",
-              direction: "rtl",
-            }),
-            multiValue: (base) => ({
-              ...base,
-              backgroundColor: "#e3f2fd",
-            }),
-            multiValueLabel: (base) => ({
-              ...base,
-              color: "#1565c0",
-            }),
-          }}
-        />
-      </CellWrapper>
+      <CreatableSelect
+        isMulti
+        value={selectedOptions}
+        onChange={handleChange}
+        options={allOptions}
+        onCreateOption={handleCreateOption}
+        placeholder="בחר או הקלד להוספה..."
+        isClearable
+        menuPortalTarget={document.body} // ensures dropdown is above table
+        styles={{
+          control: (base) => ({
+            ...base,
+            minHeight: 50,
+            textAlign: "right",
+            direction: "rtl",
+            borderRadius: 6,
+            backgroundColor: "#ffffff",
+            zIndex: 10,
+          }),
+          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+          menu: (base) => ({ ...base, textAlign: "right", direction: "rtl", zIndex: 9999 }),
+          option: (base, { data, isFocused, isSelected }) => ({
+            ...base,
+            backgroundColor: isSelected
+              ? data.color
+              : isFocused
+              ? "#eaeaea"
+              : data.color + "33",
+            color: "#000",
+            cursor: "pointer",
+            fontWeight: isSelected ? "600" : "400",
+          }),
+          multiValue: (base, { data }) => ({
+            ...base,
+            backgroundColor: data.color,
+            borderRadius: 6,
+            padding: "2px 6px",
+          }),
+          multiValueLabel: (base) => ({ ...base, color: "#000", fontWeight: 500 }),
+          multiValueRemove: (base) => ({
+            ...base,
+            color: "#000",
+            ":hover": {
+              backgroundColor: "#00000022",
+              color: "#000",
+            },
+          }),
+        }}
+      />
     );
   }
 
-  // ✅ Checkbox type
+  // Checkbox
   if (type === "checkbox") {
     return (
       <Checkbox
         type="checkbox"
-        checked={val === "כן"}
+        checked={val[0] === "כן"}
         onChange={(e) => {
           const newValue = e.target.checked ? "כן" : "לא";
-          setVal(newValue);
+          setVal([newValue]);
           onChange?.(newValue);
         }}
       />
     );
   }
 
-  // ✅ Regular editable text field (auto-grow)
+  // Regular text area
   return (
     <Textarea
       ref={textareaRef}
-      value={val}
+      value={val.join(", ")}
       onChange={handleTextChange}
       placeholder="הקש כאן להזנת טקסט..."
     />
