@@ -26,7 +26,11 @@ const App = () => {
     const loadStudents = async () => {
       try {
         const studentList = await fetchStudentList();
-        setStudents(studentList);
+        // ✅ Strip .json extension if exists
+        const cleanList = studentList.map((s) =>
+          s.endsWith(".json") ? s.replace(".json", "") : s
+        );
+        setStudents(cleanList);
       } catch (err) {
         console.error("❌ Failed to fetch students:", err);
       }
@@ -40,6 +44,7 @@ const App = () => {
     setSelectedStudent(studentName);
 
     try {
+      // ✅ Always send name without .json
       const data = await fetchStudentData(studentName);
       setTables(data);
     } catch (err) {
@@ -52,9 +57,13 @@ const App = () => {
       <div style={{ marginBottom: "20px" }}>
         <label>בחר תלמיד: </label>
         <select value={selectedStudent} onChange={handleStudentChange}>
-          <option value="" disabled>בחר תלמיד</option>
+          <option value="" disabled>
+            בחר תלמיד
+          </option>
           {students.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
       </div>

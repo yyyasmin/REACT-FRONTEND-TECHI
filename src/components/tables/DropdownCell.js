@@ -1,44 +1,10 @@
+// src/components/tables/DropdownCell.js
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-
-const Select = styled.select`
-  width: 95%; /* ✅ Perfect fit inside cells */
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-  background-color: #ffffff;
-  color: #2c3e50;
-  outline: none;
-  direction: rtl;
-  text-align: right;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  line-height: 1.5em;
-  min-height: 50px;
-  height: auto;
-  resize: none;
-  &:focus {
-    border-color: #4a90e2;
-    box-shadow: 0 0 3px rgba(74, 144, 226, 0.5);
-  }
-`;
-
-const Option = styled.option`
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  font-size: 14px;
-  line-height: 1.5em;
-  padding: 5px;
-  text-align: right;
-  direction: rtl;
-  color: #2c3e50;
-`;
+import CreatableSelect from "react-select/creatable";
 
 const Textarea = styled.textarea`
-  width: 88%; /* ✅ Narrower so even long text fits neatly inside */
+  width: 88%;
   padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
@@ -47,7 +13,7 @@ const Textarea = styled.textarea`
   color: #2c3e50;
   outline: none;
   resize: none;
-  overflow: hidden; /* ✅ No scrollbars */
+  overflow: hidden;
   min-height: 50px;
   line-height: 1.5em;
   white-space: pre-wrap;
@@ -55,6 +21,7 @@ const Textarea = styled.textarea`
   overflow-wrap: anywhere;
   text-align: right;
   direction: rtl;
+  transition: height 0.2s ease;
   &:focus {
     border-color: #4a90e2;
     box-shadow: 0 0 3px rgba(74, 144, 226, 0.5);
@@ -66,25 +33,24 @@ const Checkbox = styled.input`
   cursor: pointer;
 `;
 
+// ✅ Wrapper to ensure dropdown menu appears above other cells
+const CellWrapper = styled.div`
+  position: relative;
+  overflow: visible !important;
+  z-index: 10;
+`;
+
 const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
   const [val, setVal] = useState(value || "");
-  const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
 
-  // ✅ Auto-grow textareas vertically as content expands
+  // ✅ Smooth auto-grow for textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [val, isEditing]);
-
-  const handleDropdownChange = (e) => {
-    const newValue = e.target.value;
-    setVal(newValue);
-    setIsEditing(true); // ✅ All dropdowns editable
-    onChange?.(newValue);
-  };
+  }, [val]);
 
   const handleTextChange = (e) => {
     const newValue = e.target.value;
@@ -92,35 +58,68 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
     onChange?.(newValue);
   };
 
+  // ✅ Multi-select dropdown (creatable)
   if (type === "dropdown") {
-    const dropdownOptions = [...options, { label: "אחר" }];
+    const dropdownOptions = options.map((opt) => ({
+      value: opt.value || opt.label || opt,
+      label: opt.label || opt,
+    }));
+
+    const selectedValues = Array.isArray(val)
+      ? val.map((v) => ({
+          value: v,
+          label: dropdownOptions.find((o) => o.value === v)?.label || v,
+        }))
+      : [];
+
     return (
-      <>
-        {!isEditing ? (
-          <Select value={val} onChange={handleDropdownChange}>
-            <Option value="">בחר...</Option>
-            {dropdownOptions.map((opt, i) => (
-              <Option
-                key={i}
-                value={opt.label || opt}
-                style={{ backgroundColor: opt.color || "white" }}
-              >
-                {opt.label || opt}
-              </Option>
-            ))}
-          </Select>
-        ) : (
-          <Textarea
-            ref={textareaRef}
-            value={val}
-            onChange={handleTextChange}
-            placeholder="כתוב כאן..."
-          />
-        )}
-      </>
+      <CellWrapper>
+        <CreatableSelect
+          isMulti
+          value={selectedValues}
+          onChange={(selected) => {
+            const newValues = selected ? selected.map((s) => s.value) : [];
+            setVal(newValues);
+            onChange?.(newValues);
+          }}
+          options={dropdownOptions}
+          placeholder="בחר או הוסף אפשרויות..."
+          isClearable
+          menuPortalTarget={document.body} // ✅ dropdown above all
+          styles={{
+            control: (base) => ({
+              ...base,
+              minHeight: 50,
+              textAlign: "right",
+              direction: "rtl",
+              borderColor: "#ccc",
+            }),
+            menu: (base) => ({
+              ...base,
+              textAlign: "right",
+              direction: "rtl",
+              zIndex: 9999,
+            }),
+            option: (base) => ({
+              ...base,
+              textAlign: "right",
+              direction: "rtl",
+            }),
+            multiValue: (base) => ({
+              ...base,
+              backgroundColor: "#e3f2fd",
+            }),
+            multiValueLabel: (base) => ({
+              ...base,
+              color: "#1565c0",
+            }),
+          }}
+        />
+      </CellWrapper>
     );
   }
 
+  // ✅ Checkbox type
   if (type === "checkbox") {
     return (
       <Checkbox
@@ -135,7 +134,7 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
     );
   }
 
-  // ✅ Regular editable text field
+  // ✅ Regular editable text field (auto-grow)
   return (
     <Textarea
       ref={textareaRef}
