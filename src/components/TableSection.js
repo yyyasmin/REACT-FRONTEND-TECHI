@@ -10,7 +10,7 @@ const Section = styled.div`
   padding: 18px;
   background-color: #f9f9fa;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  width: 1200px; /* ✅ Fixed width for all tables */
+  width: 1200px;
   max-width: 95%;
   direction: rtl;
 `;

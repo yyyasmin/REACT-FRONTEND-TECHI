@@ -7,7 +7,7 @@ const Table = styled.table`
   width: 100%;
   background-color: #fff;
   font-family: "Arial", sans-serif;
-  max-width: 1200px; /* ✅ same fixed width */
+  max-width: 1200px;
 `;
 
 const Tr = styled.tr`

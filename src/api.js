@@ -1,16 +1,22 @@
-// src/api.js
-import { CHOSEN_FLASK_URL } from "./helpers/ServerRoutes";
+const BASE_URL = "http://127.0.0.1:5000";
 
-export async function fetchStudentList() {
-  const res = await fetch(`${CHOSEN_FLASK_URL}/students`);
-  if (!res.ok) throw new Error("Failed to load student list");
+export const fetchStudentList = async () => {
+  const res = await fetch(`${BASE_URL}/students`);
   return await res.json();
-}
+};
 
-export async function fetchStudentData(studentName = "") {
-  // If no name provided → backend defaults to "defaultStudentData"
-const queryParam = studentName ? `?student=${encodeURIComponent(studentName)}` : "";
-  const res = await fetch(`${CHOSEN_FLASK_URL}/load${queryParam}`);
-  if (!res.ok) throw new Error("Failed to load student data");
+export const fetchStudentData = async (studentName = "") => {
+  const url = studentName
+    ? `${BASE_URL}/load?student=${studentName}`
+    : `${BASE_URL}/load`;
+  const res = await fetch(url);
   return await res.json();
-}
+};
+
+export const saveStudentData = async (studentName, data) => {
+  await fetch(`${BASE_URL}/save_student`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ student: studentName, data })
+  });
+};

@@ -5,12 +5,12 @@ import styled from "styled-components";
 const TableContainer = styled.div`
   margin: 20px auto;
   width: 100%;
-  max-width: 1200px; /* ✅ Match all tables */
+  max-width: 1200px;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
   direction: rtl;
-  overflow: hidden; /* ✅ Remove horizontal scrolling */
+  overflow: hidden;
 `;
 
 const Title = styled.h3`

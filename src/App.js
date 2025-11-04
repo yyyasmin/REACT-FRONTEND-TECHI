@@ -1,77 +1,86 @@
-// src/App.js
 import React, { useState, useEffect } from "react";
 import TableSection from "./components/TableSection";
-import { fetchStudentList, fetchStudentData } from "./api";
+import { fetchStudentList, fetchStudentData, saveStudentData } from "./api";
 
 const App = () => {
   const [tables, setTables] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [newStudentName, setNewStudentName] = useState("");
 
-  // --- Load default JSON automatically on first render ---
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const defaultData = await fetchStudentData(); // no argument → loads default
-        setTables(defaultData);
-      } catch (err) {
-        console.error("❌ Failed to load default data:", err);
-      }
-    };
-    loadInitialData();
-  }, []);
-
-  // --- Fetch student list (names) for dropdown ---
+  // --- Fetch existing student names for dropdown ---
   useEffect(() => {
     const loadStudents = async () => {
-      try {
-        const studentList = await fetchStudentList();
-        // ✅ Strip .json extension if exists
-        const cleanList = studentList.map((s) =>
-          s.endsWith(".json") ? s.replace(".json", "") : s
-        );
-        setStudents(cleanList);
-      } catch (err) {
-        console.error("❌ Failed to fetch students:", err);
-      }
+      const studentList = await fetchStudentList();
+      const cleanList = studentList.map((s) =>
+        s.endsWith(".json") ? s.replace(".json", "") : s
+      );
+      setStudents(cleanList);
     };
     loadStudents();
   }, []);
 
-  // --- Handle student dropdown selection ---
   const handleStudentChange = async (e) => {
     const studentName = e.target.value;
     setSelectedStudent(studentName);
 
-    try {
-      // ✅ Always send name without .json
-      const data = await fetchStudentData(studentName);
-      setTables(data);
-    } catch (err) {
-      console.error("❌ Failed to fetch student data:", err);
-    }
+    // Clear previous tables
+    setTables([]);
+
+    // Fetch selected student data
+    const data = await fetchStudentData(studentName);
+
+    setTables(data);
+    console.log(`[LOG] Loaded full tables for ${studentName}:`, data);
+  };
+
+  const handleCreateNewStudent = async () => {
+    const name = newStudentName.trim();
+    if (!name) return alert("Enter a student name!");
+    if (students.includes(name)) return alert("Student already exists!");
+
+    const defaultData = await fetchStudentData();
+    await saveStudentData(name, defaultData);
+
+    setStudents((prev) => [...prev, name]);
+    setSelectedStudent(name);
+    setTables(defaultData);
+    setNewStudentName("");
+    console.log(`[LOG] New student created: ${name}`);
   };
 
   return (
     <div style={{ padding: "20px" }}>
-      <div style={{ marginBottom: "20px" }}>
-        <label>בחר תלמיד: </label>
-        <select value={selectedStudent} onChange={handleStudentChange}>
-          <option value="" disabled>
-            בחר תלמיד
-          </option>
-          {students.map((s) => (
-            <option key={s} value={s}>
-              {s}
+      <div style={{ marginBottom: "20px", display: "flex", gap: "12px" }}>
+        <div>
+          <label>בחר תלמיד: </label>
+          <select value={selectedStudent} onChange={handleStudentChange}>
+            <option value="" disabled>
+              בחר תלמיד
             </option>
-          ))}
-        </select>
+            {students.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <input
+            type="text"
+            value={newStudentName}
+            onChange={(e) => setNewStudentName(e.target.value)}
+            placeholder="שם תלמיד חדש"
+          />
+          <button onClick={handleCreateNewStudent}>הוסף תלמיד חדש</button>
+        </div>
       </div>
 
       {tables.length > 0 ? (
         tables.map((t, i) => <TableSection key={i} table={t} />)
       ) : (
-        <p>🚀 טוען נתוני ברירת מחדל...</p>
+        <p>🚀 בחר תלמיד או צור תלמיד חדש כדי לטעון נתונים...</p>
       )}
     </div>
   );
