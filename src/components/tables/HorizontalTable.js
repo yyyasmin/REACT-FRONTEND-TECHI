@@ -47,34 +47,37 @@ const HorizontalTable = ({ title, headers = [], data = [] }) => {
   if (!data) return null;
 
   return (
-    <TableContainer>
-      {title && <Title>{title}</Title>}
-      <Table>
-        <thead>
-          <tr>
-            {headers.map((h, idx) => (
-              <Th key={idx}>{h}</Th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {row.map((cell, colIndex) => (
-                <Td key={colIndex}>
-                  <DropdownCell
-                    value={cell.value}
-                    type={cell.type}
-                    options={cell.options || []}
-                    onChange={(val) => (data[rowIndex][colIndex].value = val)}
-                  />
-                </Td>
-              ))}
-            </tr>
+<TableContainer>
+  {title && <Title>{title}</Title>}
+  <Table>
+    <thead>
+      <tr>
+        {headers.map((h, idx) => (
+          <Th key={idx}>{h}</Th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {data.map((row, rowIndex) => (
+        <tr key={rowIndex}>
+          {row.map((cell, colIndex) => (
+            <Td key={colIndex}>
+              <DropdownCell
+  value={cell.value}
+  options={cell.options || []}
+  type={cell.type || "text"}
+  onChange={(val) => {
+    row[colIndex].value = val;
+  }}
+/>
+            </Td>
           ))}
-        </tbody>
-      </Table>
-    </TableContainer>
+        </tr>
+      ))}
+    </tbody>
+  </Table>
+</TableContainer>
+
   );
 };
 
