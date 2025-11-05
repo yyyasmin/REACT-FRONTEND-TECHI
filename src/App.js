@@ -1,83 +1,103 @@
 import React, { useState, useEffect } from "react";
 import TableSection from "./components/TableSection";
+import NewStudentForm from "./components/NewStudentForm";
+import ExistingStudentSelector from "./components/ExistingStudentSelector";
 import { fetchStudentList, fetchStudentData, saveStudentData } from "./api";
 
 const App = () => {
   const [tables, setTables] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState("");
-  const [newStudentName, setNewStudentName] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // --- Fetch existing student names for dropdown ---
+  // Fetch existing student list on mount
   useEffect(() => {
     const loadStudents = async () => {
-      const studentList = await fetchStudentList();
-      const cleanList = studentList.map((s) =>
-        s.endsWith(".json") ? s.replace(".json", "") : s
-      );
-      setStudents(cleanList);
+      try {
+        console.log("[DEBUG] Fetching student list...");
+        const studentList = await fetchStudentList();
+        console.log("[DEBUG] Student list response:", studentList);
+
+        setStudents(
+          studentList.map((s) => ({
+            name: s.name,
+            id: s.id,
+          }))
+        );
+      } catch (err) {
+        console.error("❌ Error loading student list:", err);
+      }
     };
     loadStudents();
   }, []);
 
-  const handleStudentChange = async (e) => {
-    const studentName = e.target.value;
-    setSelectedStudent(studentName);
-
-    // Clear previous tables
+  // Load data for a selected student
+  const handleStudentSelect = async (studentId) => {
+    if (!studentId) return;
+    setSelectedStudent(studentId);
     setTables([]);
+    setLoading(true);
 
-    // Fetch selected student data
-    const data = await fetchStudentData(studentName);
+    try {
+      console.log(`[DEBUG] Fetching data for student ID ${studentId}...`);
+      const data = await fetchStudentData(studentId);
+      console.log("[DEBUG] Raw data received from backend:", JSON.stringify(data, null, 2));
 
-    setTables(data);
-    console.log(`[LOG] Loaded full tables for ${studentName}:`, data);
+      if (Array.isArray(data)) {
+        setTables(data);
+      } else {
+        console.warn("⚠️ Unexpected data format received:", data);
+        setTables([]);
+      }
+    } catch (err) {
+      console.error("❌ Error fetching student data:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCreateNewStudent = async () => {
-    const name = newStudentName.trim();
-    if (!name) return alert("Enter a student name!");
-    if (students.includes(name)) return alert("Student already exists!");
+  // Create new student and load their tables
+  const handleCreateNewStudent = async ({ name, id }) => {
+    if (!name || !id) {
+      alert("Please enter both name and ID");
+      return;
+    }
 
-    const defaultData = await fetchStudentData();
-    await saveStudentData(name, defaultData);
+    if (students.some((s) => s.id === id || s.name === name)) {
+      alert("Student already exists!");
+      return;
+    }
 
-    setStudents((prev) => [...prev, name]);
-    setSelectedStudent(name);
-    setTables(defaultData);
-    setNewStudentName("");
-    console.log(`[LOG] New student created: ${name}`);
+    try {
+      console.log(`[DEBUG] Creating new student: ${name} (${id})`);
+      await saveStudentData({ name, id, data: [] });
+
+      setStudents((prev) => [...prev, { name, id }]);
+      setSelectedStudent(id);
+
+      const data = await fetchStudentData(id);
+      console.log("[DEBUG] Default tables loaded for new student:", data);
+      setTables(data);
+    } catch (err) {
+      console.error("❌ Error creating student:", err);
+      alert("Failed to create new student");
+    }
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <div style={{ marginBottom: "20px", display: "flex", gap: "12px" }}>
-        <div>
-          <label>בחר תלמיד: </label>
-          <select value={selectedStudent} onChange={handleStudentChange}>
-            <option value="" disabled>
-              בחר תלמיד
-            </option>
-            {students.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <input
-            type="text"
-            value={newStudentName}
-            onChange={(e) => setNewStudentName(e.target.value)}
-            placeholder="שם תלמיד חדש"
-          />
-          <button onClick={handleCreateNewStudent}>הוסף תלמיד חדש</button>
-        </div>
+        <ExistingStudentSelector
+          students={students}
+          selectedStudent={selectedStudent}
+          onSelect={handleStudentSelect}
+        />
+        <NewStudentForm onCreate={handleCreateNewStudent} />
       </div>
 
-      {tables.length > 0 ? (
+      {loading ? (
+        <p>⏳ טוען נתונים...</p>
+      ) : tables.length > 0 ? (
         tables.map((t, i) => <TableSection key={i} table={t} />)
       ) : (
         <p>🚀 בחר תלמיד או צור תלמיד חדש כדי לטעון נתונים...</p>

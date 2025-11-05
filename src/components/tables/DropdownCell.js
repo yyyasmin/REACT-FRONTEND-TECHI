@@ -34,7 +34,8 @@ const Checkbox = styled.input`
 `;
 
 const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
-  const [val, setVal] = useState(Array.isArray(value) ? value : value ? [value] : []);
+  // Always wrap value in an array for consistency
+  const [val, setVal] = useState(() => (Array.isArray(value) ? value : [value]));
   const [allOptions, setAllOptions] = useState(
     options.map((opt) => ({
       value: opt.value || opt.label || opt,
@@ -58,7 +59,7 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
     onChange?.(newValue);
   };
 
-  // Multi-select dropdown
+  // Dropdown type
   if (type === "dropdown") {
     const selectedOptions = allOptions.filter((o) => val.includes(o.value));
 
@@ -72,7 +73,7 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
       const newOption = {
         value: inputValue,
         label: inputValue,
-        color: "#d9eaf7", // default color for new user options
+        color: "#d9eaf7",
       };
       const updatedOptions = [...allOptions, newOption];
       setAllOptions(updatedOptions);
@@ -91,7 +92,7 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
         onCreateOption={handleCreateOption}
         placeholder="בחר או הקלד להוספה..."
         isClearable
-        menuPortalTarget={document.body} // ensures dropdown is above table
+        menuPortalTarget={document.body}
         styles={{
           control: (base) => ({
             ...base,
@@ -135,12 +136,12 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
     );
   }
 
-  // Checkbox
+  // Checkbox type
   if (type === "checkbox") {
     return (
       <Checkbox
         type="checkbox"
-        checked={val[0] === "כן"}
+        checked={val[0] === true || val[0] === "כן"}
         onChange={(e) => {
           const newValue = e.target.checked ? "כן" : "לא";
           setVal([newValue]);
@@ -150,11 +151,11 @@ const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
     );
   }
 
-  // Regular text area
+  // Text or longtext
   return (
     <Textarea
       ref={textareaRef}
-      value={val.join(", ")}
+      value={Array.isArray(val) ? val[0] || "" : val || ""}
       onChange={handleTextChange}
       placeholder="הקש כאן להזנת טקסט..."
     />

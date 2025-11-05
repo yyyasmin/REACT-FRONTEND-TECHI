@@ -1,6 +1,6 @@
 import React from "react";
-import DropdownCell from "./DropdownCell";
 import styled from "styled-components";
+import DropdownCell from "./DropdownCell";
 
 const TableContainer = styled.div`
   margin: 20px auto;
@@ -43,17 +43,8 @@ const Td = styled.td`
   vertical-align: top;
 `;
 
-const HorizontalTable = ({ title, data = [], headers = [], dropdownOptions = {}, onDataChange }) => {
-  const handleCellChange = (rowIndex, colKey, newValue) => {
-    const updatedData = [...data];
-    if (!updatedData[rowIndex]) updatedData[rowIndex] = {};
-    if (Array.isArray(updatedData[rowIndex])) {
-      updatedData[rowIndex][headers.indexOf(colKey)] = newValue;
-    } else {
-      updatedData[rowIndex][colKey] = newValue;
-    }
-    if (onDataChange) onDataChange(updatedData);
-  };
+const HorizontalTable = ({ title, headers = [], data = [] }) => {
+  if (!data) return null;
 
   return (
     <TableContainer>
@@ -61,37 +52,24 @@ const HorizontalTable = ({ title, data = [], headers = [], dropdownOptions = {},
       <Table>
         <thead>
           <tr>
-            {headers.map((header, idx) => (
-              <Th key={idx}>{header}</Th>
+            {headers.map((h, idx) => (
+              <Th key={idx}>{h}</Th>
             ))}
           </tr>
         </thead>
         <tbody>
           {data.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {headers.map((colKey, colIndex) => {
-                const cell = Array.isArray(row) ? row[colIndex] : row[colKey];
-                const cellValue = cell?.value ?? cell ?? "";
-                const options = cell?.options ?? dropdownOptions[colKey] ?? [];
-                const type =
-                  cell?.type ||
-                  (typeof cellValue === "boolean" || cellValue === "כן" || cellValue === "לא"
-                    ? "checkbox"
-                    : options.length > 0
-                    ? "dropdown"
-                    : "text");
-
-                return (
-                  <Td key={colIndex}>
-                    <DropdownCell
-                      value={cellValue}
-                      options={options}
-                      type={type}
-                      onChange={(val) => handleCellChange(rowIndex, colKey, val)}
-                    />
-                  </Td>
-                );
-              })}
+              {row.map((cell, colIndex) => (
+                <Td key={colIndex}>
+                  <DropdownCell
+                    value={cell.value}
+                    type={cell.type}
+                    options={cell.options || []}
+                    onChange={(val) => (data[rowIndex][colIndex].value = val)}
+                  />
+                </Td>
+              ))}
             </tr>
           ))}
         </tbody>
