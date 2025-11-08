@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import TableSection from "./components/TableSection";
 import NewStudentForm from "./components/NewStudentForm";
 import ExistingStudentSelector from "./components/ExistingStudentSelector";
-import { fetchStudentList, fetchStudentData, saveStudentData } from "./api";
+
+// Correct imports to match api.js
+import { fetchStdList, fetchStdData, saveStdData } from "./api";
 
 const App = () => {
   const [tables, setTables] = useState([]);
@@ -15,7 +17,7 @@ const App = () => {
     const loadStudents = async () => {
       try {
         console.log("[DEBUG] Fetching student list...");
-        const studentList = await fetchStudentList();
+        const studentList = await fetchStdList();
         console.log("[DEBUG] Student list response:", studentList);
 
         setStudents(
@@ -40,7 +42,7 @@ const App = () => {
 
     try {
       console.log(`[DEBUG] Fetching data for student ID ${studentId}...`);
-      const data = await fetchStudentData(studentId);
+      const data = await fetchStdData(studentId);
       console.log("[DEBUG] Raw data received from backend:", JSON.stringify(data, null, 2));
 
       if (Array.isArray(data)) {
@@ -70,12 +72,12 @@ const App = () => {
 
     try {
       console.log(`[DEBUG] Creating new student: ${name} (${id})`);
-      await saveStudentData({ name, id, data: [] });
+      await saveStdData({ name, id, data: [] });
 
       setStudents((prev) => [...prev, { name, id }]);
       setSelectedStudent(id);
 
-      const data = await fetchStudentData(id);
+      const data = await fetchStdData(id);
       console.log("[DEBUG] Default tables loaded for new student:", data);
       setTables(data);
     } catch (err) {

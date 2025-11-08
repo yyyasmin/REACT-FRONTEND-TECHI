@@ -9,7 +9,7 @@ const Section = styled.div`
   border-radius: 12px;
   padding: 18px;
   background-color: #f9f9fa;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   width: 1200px;
   max-width: 95%;
   direction: rtl;
@@ -25,7 +25,18 @@ const Title = styled.h2`
   text-align: center;
 `;
 
-const TableSection = ({ table }) => {
+const SaveButton = styled.button`
+  background-color: #4a90e2;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+  &:hover { background-color: #357ab8; }
+`;
+
+const TableSection = ({ table, onSave }) => {
   if (!table || !table.data) return null;
 
   return (
@@ -41,6 +52,7 @@ const TableSection = ({ table }) => {
       ) : (
         <VerticalTable table={table} />
       )}
+      <SaveButton onClick={onSave}>💾 שמור טבלה</SaveButton>
     </Section>
   );
 };

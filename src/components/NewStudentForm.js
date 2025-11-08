@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const NewStudentForm = ({ onCreate }) => {
+const NewStdForm = ({ onCreate }) => {
   const [name, setName] = useState("");
   const [id, setId] = useState("");
 
@@ -18,17 +18,17 @@ const NewStudentForm = ({ onCreate }) => {
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="שם תלמיד חדש"
+        placeholder="שם std חדש"
       />
       <input
         type="text"
         value={id}
         onChange={(e) => setId(e.target.value)}
-        placeholder="ID תלמיד"
+        placeholder="ID std"
       />
-      <button type="submit">הוסף תלמיד חדש</button>
+      <button type="submit">הוסף std חדש</button>
     </form>
   );
 };
 
-export default NewStudentForm;
+export default NewStdForm;
