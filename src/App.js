@@ -1,100 +1,97 @@
 import React, { useState, useEffect } from "react";
 import TableSection from "./components/TableSection";
-import NewStudentForm from "./components/NewStudentForm";
-import ExistingStudentSelector from "./components/ExistingStudentSelector";
-
-// Correct imports to match api.js
+import NewStdForm from "./components/NewStdForm";
+import ExistingStdSelector from "./components/ExistingStdSelector";
 import { fetchStdList, fetchStdData, saveStdData } from "./api";
 
 const App = () => {
   const [tables, setTables] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState("");
+  const [stds, setStds] = useState([]); // ✅ changed from students
+  const [selectedStd, setSelectedStd] = useState(""); // ✅ changed
   const [loading, setLoading] = useState(false);
 
-  // Fetch existing student list on mount
   useEffect(() => {
-    const loadStudents = async () => {
+    const loadStds = async () => {
       try {
-        console.log("[DEBUG] Fetching student list...");
-        const studentList = await fetchStdList();
-        console.log("[DEBUG] Student list response:", studentList);
+        console.log("[DEBUG] Fetching std list...");
+        const stdList = await fetchStdList();
+        console.log("[DEBUG] Std list response:", stdList);
 
-        setStudents(
-          studentList.map((s) => ({
+        setStds(
+          stdList.map((s) => ({
             name: s.name,
             id: s.id,
           }))
         );
       } catch (err) {
-        console.error("❌ Error loading student list:", err);
+        console.error("❌ Error loading std list:", err);
       }
     };
-    loadStudents();
+    loadStds();
   }, []);
 
-  // Load data for a selected student
-  const handleStudentSelect = async (studentId) => {
-    if (!studentId) return;
-    setSelectedStudent(studentId);
+  const handleStdSelect = async (stdId) => { // ✅ changed
+    if (!stdId) return;
+    setSelectedStd(stdId);
     setTables([]);
     setLoading(true);
 
     try {
-      console.log(`[DEBUG] Fetching data for student ID ${studentId}...`);
-      const data = await fetchStdData(studentId);
+      console.log(`[DEBUG] Fetching data for std ID ${stdId}...`);
+      const data = await fetchStdData(stdId);
       console.log("[DEBUG] Raw data received from backend:", JSON.stringify(data, null, 2));
 
       if (Array.isArray(data)) {
         setTables(data);
+      } else if (data.tables) {
+        setTables(data.tables); // ✅ changed to handle new backend format
       } else {
         console.warn("⚠️ Unexpected data format received:", data);
         setTables([]);
       }
     } catch (err) {
-      console.error("❌ Error fetching student data:", err);
+      console.error("❌ Error fetching std data:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Create new student and load their tables
-  const handleCreateNewStudent = async ({ name, id }) => {
+  const handleCreateNewStd = async ({ name, id }) => { // ✅ changed
     if (!name || !id) {
       alert("Please enter both name and ID");
       return;
     }
 
-    if (students.some((s) => s.id === id || s.name === name)) {
-      alert("Student already exists!");
+    if (stds.some((s) => s.id === id || s.name === name)) { // ✅ changed
+      alert("Std already exists!");
       return;
     }
 
     try {
-      console.log(`[DEBUG] Creating new student: ${name} (${id})`);
+      console.log(`[DEBUG] Creating new std: ${name} (${id})`);
       await saveStdData({ name, id, data: [] });
 
-      setStudents((prev) => [...prev, { name, id }]);
-      setSelectedStudent(id);
+      setStds((prev) => [...prev, { name, id }]); // ✅ changed
+      setSelectedStd(id);
 
       const data = await fetchStdData(id);
-      console.log("[DEBUG] Default tables loaded for new student:", data);
-      setTables(data);
+      console.log("[DEBUG] Default tables loaded for new std:", data);
+      setTables(data.tables || []);
     } catch (err) {
-      console.error("❌ Error creating student:", err);
-      alert("Failed to create new student");
+      console.error("❌ Error creating std:", err);
+      alert("Failed to create new std");
     }
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <div style={{ marginBottom: "20px", display: "flex", gap: "12px" }}>
-        <ExistingStudentSelector
-          students={students}
-          selectedStudent={selectedStudent}
-          onSelect={handleStudentSelect}
+        <ExistingStdSelector
+          stds={stds} // ✅ changed
+          selectedStd={selectedStd} // ✅ changed
+          onSelect={handleStdSelect} // ✅ changed
         />
-        <NewStudentForm onCreate={handleCreateNewStudent} />
+        <NewStdForm onCreate={handleCreateNewStd} /> {/* ✅ changed */}
       </div>
 
       {loading ? (
@@ -102,7 +99,7 @@ const App = () => {
       ) : tables.length > 0 ? (
         tables.map((t, i) => <TableSection key={i} table={t} />)
       ) : (
-        <p>🚀 בחר תלמיד או צור תלמיד חדש כדי לטעון נתונים...</p>
+        <p>🚀 בחר std או צור std חדש כדי לטעון נתונים...</p> // ✅ changed
       )}
     </div>
   );

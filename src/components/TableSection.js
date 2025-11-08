@@ -9,13 +9,13 @@ const Section = styled.div`
   border-radius: 12px;
   padding: 18px;
   background-color: #f9f9fa;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   width: 1200px;
   max-width: 95%;
   direction: rtl;
 `;
 
-const Title = styled.h2`
+const SectionTitle = styled.h2`
   font-size: 20px;
   margin-bottom: 12px;
   color: #2c3e50;
@@ -25,34 +25,32 @@ const Title = styled.h2`
   text-align: center;
 `;
 
-const SaveButton = styled.button`
-  background-color: #4a90e2;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: none;
-  margin-top: 10px;
-  cursor: pointer;
-  &:hover { background-color: #357ab8; }
-`;
+const TableSection = ({ table }) => {
+  if (!table) return null;
 
-const TableSection = ({ table, onSave }) => {
-  if (!table || !table.data) return null;
+  // -------------------------------
+  // Decide data format for HorizontalTable
+  // -------------------------------
+  const tableData =
+    table.table_name === "תכנית חינוכית יחידנית"
+      ? table.cells // Personal Education table
+      : table.cells
+      ? [{ cells: table.cells }] // First three tables
+      : [];
 
   return (
     <Section>
-      <Title>{table.table_name}</Title>
+      <SectionTitle>{table.table_name}</SectionTitle>
       {table.direction === "horizontal" ? (
         <HorizontalTable
           title={table.table_name}
           headers={table.titles || []}
-          data={table.data || []}
-          dropdownOptions={table.dropdowns ?? {}}
+          data={tableData}
+          tableName={table.table_name}
         />
       ) : (
-        <VerticalTable table={table} />
+        <VerticalTable table={{ ...table, data: table.cells || [] }} />
       )}
-      <SaveButton onClick={onSave}>💾 שמור טבלה</SaveButton>
     </Section>
   );
 };

@@ -1,4 +1,3 @@
-// src/components/tables/DropdownCell.js
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import CreatableSelect from "react-select/creatable";
@@ -34,18 +33,21 @@ const Checkbox = styled.input`
 `;
 
 const DropdownCell = ({ value, options = [], type = "text", onChange }) => {
-  // Always wrap value in an array for consistency
-  const [val, setVal] = useState(() => (Array.isArray(value) ? value : [value]));
+  // Wrap value in array if not array
+  const [val, setVal] = useState(() =>
+    Array.isArray(value) ? value : value !== undefined && value !== null ? [value] : []
+  );
+
   const [allOptions, setAllOptions] = useState(
     options.map((opt) => ({
-      value: opt.value || opt.label || opt,
-      label: opt.label || opt,
-      color: opt.color || "#f2f2f2",
+      value: opt.value ?? opt.label ?? opt,
+      label: opt.label ?? opt,
+      color: opt.color ?? "#f2f2f2",
     }))
   );
+
   const textareaRef = useRef(null);
 
-  // Auto-grow textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";

@@ -35,7 +35,7 @@ const Td = styled.td`
 `;
 
 const VerticalTable = ({ table }) => {
-  if (!table?.data) return null;
+  if (!table?.data || !Array.isArray(table.data)) return null;
 
   return (
     <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
@@ -43,24 +43,37 @@ const VerticalTable = ({ table }) => {
         <tbody>
           {table.data.map((row, rowIndex) => (
             <Tr key={rowIndex} $index={rowIndex}>
-              {row.map((cell, colIndex) =>
-                colIndex === 0 ? (
-                  <Th key={colIndex}>
-                    {cell?.value && typeof cell.value === "object"
-                      ? cell.value.label || JSON.stringify(cell.value)
-                      : cell.value}
-                  </Th>
-                ) : (
-                  <Td key={colIndex}>
-                    <DropdownCell
-                      value={cell.value}
-                      type={cell.type}
-                      options={cell.options || []}
-                      onChange={(val) => (table.data[rowIndex][colIndex].value = val)}
-                    />
-                  </Td>
-                )
-              )}
+              {row.map((cell, colIndex) => {
+                // Safely extract backend object values
+                const cellValue = cell?.value ?? "";
+                const cellOptions = cell?.options ?? [];
+                const cellType = cell?.type ?? "text";
+
+                if (colIndex === 0) {
+                  // First column as header
+                  return (
+                    <Th key={colIndex}>
+                      {typeof cellValue === "object"
+                        ? cellValue.label ?? JSON.stringify(cellValue)
+                        : cellValue}
+                    </Th>
+                  );
+                } else {
+                  // Editable cell with DropdownCell
+                  return (
+                    <Td key={colIndex}>
+                      <DropdownCell
+                        value={cellValue}
+                        options={cellOptions}
+                        type={cellType}
+                        onChange={(val) => {
+                          table.data[rowIndex][colIndex].value = val;
+                        }}
+                      />
+                    </Td>
+                  );
+                }
+              })}
             </Tr>
           ))}
         </tbody>
