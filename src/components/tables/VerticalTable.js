@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import DropdownCell from "./DropdownCell";
+// 🔹 UPDATED: import HandleCell instead of DropdownCell
+import HandleCell from "./cells/HandleCell";
+import AddRowBtn from "./AddRowBtn";
 
 const Table = styled.table`
   border-collapse: collapse;
@@ -34,23 +36,63 @@ const Td = styled.td`
   background-color: #f8fafc;
 `;
 
+// Normalize cells for vertical table
+const normalizeVerticalCells = (cells = []) => {
+  if (!Array.isArray(cells)) return [];
+  return cells.map(row => {
+    if (Array.isArray(row)) {
+      return row.map(cell => {
+        if (typeof cell === "object" && cell !== null) {
+          return {
+            type: cell.type || "text",
+            title: cell.title || "",
+            value: cell.value ?? "",
+            options: cell.options || [],
+          };
+        }
+        return { type: "text", title: "", value: cell ?? "", options: [] };
+      });
+    }
+    return [{ type: "text", title: "", value: row ?? "", options: [] }];
+  });
+};
+
 const VerticalTable = ({ table }) => {
-  if (!table?.data || !Array.isArray(table.data)) return null;
+  const [rows, setRows] = useState(() => {
+    // Normalize cells to ensure proper format
+    return normalizeVerticalCells(table?.cells || []);
+  });
+
+  // Don't return null - show empty table if no data
+  if (!table) return null;
+
+  const handleAddRow = (newRow) => {
+    // Handle both formats: {cells: [...]} or just [...]
+    const rowToAdd = newRow?.cells || newRow;
+    if (Array.isArray(rowToAdd)) {
+      const normalizedRow = normalizeVerticalCells([rowToAdd])[0] || rowToAdd;
+      setRows(prev => [...prev, normalizedRow]);
+    }
+  };
 
   return (
     <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
+      <AddRowBtn
+        std_id={table.std_id}
+        table_name={table.table_name}
+        onRowAdded={handleAddRow}
+      />
+
       <Table>
         <tbody>
-          {table.data.map((row, rowIndex) => (
+          {rows.map((row, rowIndex) => (
             <Tr key={rowIndex} $index={rowIndex}>
               {row.map((cell, colIndex) => {
-                // Safely extract backend object values
                 const cellValue = cell?.value ?? "";
                 const cellOptions = cell?.options ?? [];
                 const cellType = cell?.type ?? "text";
 
                 if (colIndex === 0) {
-                  // First column as header
                   return (
                     <Th key={colIndex}>
                       {typeof cellValue === "object"
@@ -59,15 +101,16 @@ const VerticalTable = ({ table }) => {
                     </Th>
                   );
                 } else {
-                  // Editable cell with DropdownCell
                   return (
                     <Td key={colIndex}>
-                      <DropdownCell
+                      {/* 🔹 UPDATED: use HandleCell instead of DropdownCell */}
+                      <HandleCell
+                        type={cellType}
                         value={cellValue}
                         options={cellOptions}
-                        type={cellType}
                         onChange={(val) => {
-                          table.data[rowIndex][colIndex].value = val;
+                          row[colIndex].value = val;
+                          setRows([...rows]);
                         }}
                       />
                     </Td>

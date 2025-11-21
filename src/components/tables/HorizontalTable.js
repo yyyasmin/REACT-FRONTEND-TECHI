@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import DropdownCell from "./DropdownCell";
+// 🔹 UPDATED: import HandleCell instead of DropdownCell
+import HandleCell from "./cells/HandleCell";
+import AddRowBtn from "./AddRowBtn";
 
 const TableContainer = styled.div`
   margin: 20px auto;
   width: 1200px;
   max-width: 95%;
-  background-color: #ffffff;
+  background-color: #fff;
   border-radius: 12px;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-  direction: rtl;
   overflow-x: auto;
+  direction: rtl;
 `;
 
 const Table = styled.table`
@@ -39,98 +40,121 @@ const Title = styled.h3`
   padding: 10px;
   background-color: #e6f0ff;
   margin: 0;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  width: 100%;
+  border-radius: 12px 12px 0 0;
 `;
 
-const HorizontalTable = ({ title, headers = [], data = [], tableName }) => {
-  if (!data || !Array.isArray(data)) return null;
-
-  const normalizeRow = (rowObj) => {
-    // -------------------------------
-    // FIRST THREE TABLES
-    // -------------------------------
-    if (rowObj.cells) {
-      return rowObj.cells.map((cell) => ({
-        value: cell.value,
-        options: cell.options || [],
-        type: cell.type || "text",
-        title: cell.title,
-      }));
+// ----------------------------
+// NORMALIZER (SAFE VERSION) - Handles all formats
+// Preserves all properties including options with colors
+// ----------------------------
+const normalizeCells = (cells = []) =>
+  cells.map((cell) => {
+    // Handle different cell formats
+    let cellObj = cell;
+    
+    // If cell is a string or primitive, convert to object
+    if (typeof cell !== "object" || cell === null) {
+      cellObj = { value: cell, type: "text", title: "", options: [] };
     }
-
-    // -------------------------------
-    // PERSONAL EDUCATION TABLE
-    // -------------------------------
-    if (tableName === "תכנית חינוכית יחידנית") {
-      return [
-        { title: "תחום תפקוד", value: rowObj.field || "", type: "text" },
-        { title: "תפקוד נוכחי", value: rowObj.current_function || "", type: "text" },
-        {
-          title: "מטרות ויעדים מדידים",
-          value: rowObj.goals?.value || "",
-          options: rowObj.goals?.options || [],
-          type: "dropdown",
-        },
-        {
-          title: "השותפים ופעולות לקידום המטרה",
-          value: rowObj.partners?.value || "",
-          options: rowObj.partners?.options || [],
-          type: "dropdown",
-        },
-        { title: "הערכה מעצבת", value: rowObj.assessment || "", type: "text" },
-      ];
+    
+    // Extract type, handling different formats
+    const cellType = (cellObj.type || "text").toLowerCase().trim();
+    
+    // Extract value, handling different formats
+    let cellValue = cellObj.value;
+    if (cellValue === null || cellValue === undefined) {
+      // Set default based on type
+      if (cellType === "checkbox") {
+        cellValue = false;
+      } else if (cellType === "dropdown") {
+        cellValue = [];
+      } else {
+        cellValue = "";
+      }
     }
+    
+    // Extract options, ensuring array format and preserving all properties (label, value, color, grade)
+    let cellOptions = [];
+    if (cellObj.options && Array.isArray(cellObj.options)) {
+      cellOptions = cellObj.options.map(opt => {
+        if (typeof opt === "string") {
+          return { label: opt, value: opt, color: "#f2f2f2" };
+        }
+        if (typeof opt === "object" && opt !== null) {
+          return {
+            label: opt.label || opt.value || String(opt),
+            value: opt.value || opt.label || String(opt),
+            color: opt.color || "#f2f2f2",
+            grade: opt.grade,
+          };
+        }
+        return { label: String(opt), value: String(opt), color: "#f2f2f2" };
+      });
+    }
+    
+    // Extract title
+    const cellTitle = cellObj.title || "";
+    
+    return {
+      type: cellType,
+      title: cellTitle,
+      options: cellOptions, // Preserve full options array with all properties
+      value: cellValue,
+    };
+  });
 
-    return [];
-  };
+const HorizontalTable = ({ headers = [], data = [], tableName, std_id }) => {
+  // Normalize initial backend data
+  const [rows, setRows] = useState(() =>
+    data.map((row) => ({
+      ...row,
+      cells: normalizeCells(row.cells),
+    }))
+  );
 
   return (
     <TableContainer>
-      {title && <Title>{title}</Title>}
+      <AddRowBtn
+        std_id={std_id}
+        table_name={tableName}
+        onRowAdded={(newRow) => {
+          // Backend sends: { new_row: { cells: [...] } }
+          // AddRowBtn passes result.new_row directly, so newRow is the new_row object
+          if (newRow && newRow.cells) {
+            const newCells = normalizeCells(newRow.cells);
+            setRows((prev) => [...prev, { cells: newCells }]);
+          }
+        }}
+      />
+
       <Table>
         <thead>
           <tr>
-            {headers.map((h, idx) => (
-              <Th key={idx}>{h}</Th>
+            {headers.map((h, i) => (
+              <Th key={i}>{h}</Th>
             ))}
           </tr>
         </thead>
+
         <tbody>
-          {data.map((rowObj, rowIndex) => {
-            const normalizedRow = normalizeRow(rowObj);
-
-            return (
-              <tr key={rowIndex}>
-                {normalizedRow.map((cell, colIndex) => (
-                  <Td key={colIndex}>
-                    <DropdownCell
-                      value={cell.value}
-                      options={cell.options || []}
-                      type={cell.type || "text"}
-                      onChange={(val) => {
-                        // -------------------------------
-                        // FIRST THREE TABLES
-                        // -------------------------------
-                        if (rowObj.cells) {
-                          rowObj.cells[colIndex].value = val;
-                        }
-
-                        // -------------------------------
-                        // PERSONAL EDUCATION TABLE
-                        // -------------------------------
-                        else if (tableName === "תכנית חינוכית יחידנית") {
-                          if (colIndex === 2) rowObj.goals.value = val;
-                          if (colIndex === 3) rowObj.partners.value = val;
-                        }
-                      }}
-                    />
-                  </Td>
-                ))}
-              </tr>
-            );
-          })}
+          {rows.map((rowObj, r) => (
+            <tr key={r}>
+              {rowObj.cells.map((cell, c) => (
+                <Td key={c}>
+                  {/* 🔹 UPDATED: use HandleCell instead of DropdownCell */}
+                  <HandleCell
+                    type={cell.type}
+                    value={cell.value}
+                    options={cell.options}
+                    onChange={(val) => {
+                      rowObj.cells[c].value = val;
+                      setRows([...rows]);
+                    }}
+                  />
+                </Td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </Table>
     </TableContainer>
