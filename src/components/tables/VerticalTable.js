@@ -64,12 +64,13 @@ const VerticalTable = ({ table, allFields, allGoalsMap, allActivitiesMap }) => {
             <Tr key={rowIndex} $index={rowIndex}>
               {row.map((cell, colIndex) => (
                 <Td key={colIndex}>
-                  {colIndex === 0 && table?.table_name === "תכנית חינוכית יחידנית" && allFields ? (
+                  {colIndex === 0 && (table?.table_name === "תכנית חינוכית יחידנית" || table?.table_name === "תוכנית לימודית אישית") && allFields ? (
                     <HandleCell
                       type="dropdown"
                       value={cell.value}
                       options={allFields}
                       onChange={(val) => handleFieldChange(rowIndex, val)}
+                      isMulti={false} // Field dropdown is single-select
                     />
                   ) : (
                     <HandleCell

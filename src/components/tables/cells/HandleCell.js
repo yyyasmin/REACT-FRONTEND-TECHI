@@ -5,12 +5,12 @@ import CheckboxCell from "./CheckboxCell";
 import DateCell from "./DateCell";
 import DropdownCell from "./DropdownCell";
 
-const HandleCell = ({ type, value, options, onChange }) => {
+const HandleCell = ({ type, value, options, onChange, isMulti = undefined }) => {
   // Normalize cell type - handle different cases and missing types
   const cellType = (type || "text").toLowerCase().trim();
 
   // Normalize value based on type
-  const normalizeValue = (val, cellType) => {
+  const normalizeValue = (val, cellType, isMulti) => {
     if (val === null || val === undefined) {
       // Return default based on type
       if (cellType === "checkbox") return false;
@@ -28,14 +28,33 @@ const HandleCell = ({ type, value, options, onChange }) => {
     }
 
     if (cellType === "dropdown") {
-      // Dropdown: always return array
-      if (Array.isArray(val)) return val;
-      if (typeof val === "string" && val.trim() !== "") return [val];
-      if (val && typeof val === "object" && val.value) {
-        // Handle object format {value: "...", options: [...]}
-        return Array.isArray(val.value) ? val.value : [val.value];
+      // Dropdown: Handle based on isMulti prop
+      // If isMulti is false (single-select), return string; otherwise return array
+      // Since isMulti is passed as prop, we can use it here
+      if (isMulti === false) {
+        // Single-select: return string (not array!)
+        if (Array.isArray(val)) {
+          // If it's an array, take first element and convert to string
+          const first = val[0];
+          if (typeof first === "string") return first;
+          if (first && typeof first === "object") return first.value || first.label || "";
+          return String(first || "");
+        }
+        if (typeof val === "string") return val;
+        if (val && typeof val === "object") {
+          // Extract value or label as string
+          return val.value || val.label || "";
+        }
+        return "";
+      } else {
+        // Multi-select: return array
+        if (Array.isArray(val)) return val;
+        if (typeof val === "string" && val.trim() !== "") return [val];
+        if (val && typeof val === "object" && val.value) {
+          return Array.isArray(val.value) ? val.value : [val.value];
+        }
+        return [];
       }
-      return [];
     }
 
     if (cellType === "date") {
@@ -86,7 +105,7 @@ const HandleCell = ({ type, value, options, onChange }) => {
     }
   };
 
-  const normalizedValue = normalizeValue(value, cellType);
+  const normalizedValue = normalizeValue(value, cellType, isMulti);
   const normalizedOptions = normalizeOptions(options);
 
   // Debug logging for "סוג איבחון"
@@ -110,11 +129,25 @@ const HandleCell = ({ type, value, options, onChange }) => {
       return <DateCell value={normalizedValue} onChange={handleChange} />;
 
     case "dropdown":
+      // Debug: log isMulti prop for field dropdown
+      if (isMulti === false) {
+        console.log("HandleCell - DROPDOWN with isMulti=false - normalizedValue:", normalizedValue, "normalizedOptions:", normalizedOptions?.length);
+      }
       return (
         <DropdownCell
           value={normalizedValue}
           options={normalizedOptions}
-          onChange={handleChange}
+          onChange={(val) => {
+            // For single-select, ensure we pass a string, not an array
+            if (isMulti === false) {
+              const stringVal = Array.isArray(val) ? val[0] : (typeof val === "object" ? (val.value || val.label || "") : val);
+              console.log("HandleCell - Single-select onChange - val:", val, "stringVal:", stringVal);
+              handleChange(stringVal);
+            } else {
+              handleChange(val);
+            }
+          }}
+          isMulti={isMulti !== undefined ? isMulti : true} // Default to multi-select unless specified
         />
       );
 
