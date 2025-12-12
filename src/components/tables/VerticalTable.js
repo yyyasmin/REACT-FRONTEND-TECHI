@@ -1,15 +1,11 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-// 🔹 UPDATED: import HandleCell instead of DropdownCell
 import HandleCell from "./cells/HandleCell";
 import AddRowBtn from "./AddRowBtn";
 
 const Table = styled.table`
   border-collapse: collapse;
   width: 100%;
-  background-color: #fff;
-  font-family: "Arial", sans-serif;
-  max-width: 1200px;
 `;
 
 const Tr = styled.tr`
@@ -25,7 +21,6 @@ const Th = styled.th`
   text-align: right;
   font-weight: bold;
   background-color: #dce8ff;
-  width: 30%;
 `;
 
 const Td = styled.td`
@@ -36,87 +31,60 @@ const Td = styled.td`
   background-color: #f8fafc;
 `;
 
-// Normalize cells for vertical table
-const normalizeVerticalCells = (cells = []) => {
-  if (!Array.isArray(cells)) return [];
-  return cells.map(row => {
-    if (Array.isArray(row)) {
-      return row.map(cell => {
-        if (typeof cell === "object" && cell !== null) {
-          return {
-            type: cell.type || "text",
-            title: cell.title || "",
-            value: cell.value ?? "",
-            options: cell.options || [],
-          };
-        }
-        return { type: "text", title: "", value: cell ?? "", options: [] };
-      });
-    }
-    return [{ type: "text", title: "", value: row ?? "", options: [] }];
-  });
-};
+const VerticalTable = ({ table, allFields, allGoalsMap, allActivitiesMap }) => {
+  const [rows, setRows] = useState(table?.cells || []);
 
-const VerticalTable = ({ table }) => {
-  const [rows, setRows] = useState(() => {
-    // Normalize cells to ensure proper format
-    return normalizeVerticalCells(table?.cells || []);
-  });
+  const handleFieldChange = (rowIndex, newField) => {
+    const newRows = [...rows];
+    const row = newRows[rowIndex];
 
-  // Don't return null - show empty table if no data
-  if (!table) return null;
+    // עדכון התחום בעמודה הראשונה
+    row[0].value = newField;
 
-  const handleAddRow = (newRow) => {
-    // Handle both formats: {cells: [...]} or just [...]
-    const rowToAdd = newRow?.cells || newRow;
-    if (Array.isArray(rowToAdd)) {
-      const normalizedRow = normalizeVerticalCells([rowToAdd])[0] || rowToAdd;
-      setRows(prev => [...prev, normalizedRow]);
-    }
+    // עדכון מטרות ופעולות בהתאם
+    row[2].options = allGoalsMap[newField] || [];
+    row[2].value = row[2].options.length ? row[2].options[0].label : "";
+
+    row[3].options = allActivitiesMap[newField] || [];
+    row[3].value = row[3].options.length ? row[3].options[0].label : "";
+
+    setRows(newRows);
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
+    <div>
       <AddRowBtn
         std_id={table.std_id}
         table_name={table.table_name}
-        onRowAdded={handleAddRow}
+        onRowAdded={(newRow) => setRows([...rows, newRow.cells])}
       />
-
       <Table>
         <tbody>
           {rows.map((row, rowIndex) => (
             <Tr key={rowIndex} $index={rowIndex}>
-              {row.map((cell, colIndex) => {
-                const cellValue = cell?.value ?? "";
-                const cellOptions = cell?.options ?? [];
-                const cellType = cell?.type ?? "text";
-
-                if (colIndex === 0) {
-                  return (
-                    <Th key={colIndex}>
-                      {typeof cellValue === "object"
-                        ? cellValue.label ?? JSON.stringify(cellValue)
-                        : cellValue}
-                    </Th>
-                  );
-                } else {
-                  return (
-                    <Td key={colIndex}>
-                      {/* 🔹 UPDATED: use HandleCell instead of DropdownCell */}
-                      <HandleCell
-                        type={cellType}
-                        value={cellValue}
-                        options={cellOptions}
-                        onChange={(val) => {
-                          row[colIndex].value = val;
-                          setRows([...rows]);
-                        }}
-                      />
-                    </Td>
-                  );
-                }
-              })}
+              {row.map((cell, colIndex) => (
+                <Td key={colIndex}>
+                  {colIndex === 0 && table?.table_name === "תכנית חינוכית יחידנית" && allFields ? (
+                    <HandleCell
+                      type="dropdown"
+                      value={cell.value}
+                      options={allFields}
+                      onChange={(val) => handleFieldChange(rowIndex, val)}
+                    />
+                  ) : (
+                    <HandleCell
+                      type={cell.type}
+                      value={cell.value}
+                      options={cell.options}
+                      onChange={(val) => {
+                        const newRows = [...rows];
+                        newRows[rowIndex][colIndex].value = val;
+                        setRows(newRows);
+                      }}
+                    />
+                  )}
+                </Td>
+              ))}
             </Tr>
           ))}
         </tbody>

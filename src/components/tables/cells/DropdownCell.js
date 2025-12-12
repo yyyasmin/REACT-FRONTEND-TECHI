@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CreatableSelect from "react-select/creatable";
 import { components } from "react-select";
 
@@ -11,12 +11,34 @@ export default function DropdownCell({ value = [], options = [], onChange }) {
     }))
   );
 
+  // Update allOptions when options prop changes
+  useEffect(() => {
+    console.log("DropdownCell - options prop received:", options);
+    console.log("DropdownCell - options length:", options?.length);
+    const mappedOptions = options.map((o) => ({
+      value: o.value ?? o.label ?? o,
+      label: o.label ?? o.value ?? o,
+      color: o.color ?? "#f2f2f2",
+    }));
+    console.log("DropdownCell - mappedOptions:", mappedOptions);
+    setAllOptions(mappedOptions);
+  }, [options]);
+
   const selected = allOptions.filter((o) => {
     if (Array.isArray(value)) {
       return value.includes(o.value) || value.includes(o.label);
     }
     return value === o.value || value === o.label;
   });
+
+  // Debug logging
+  useEffect(() => {
+    if (allOptions.length > 0 && allOptions[0]?.label?.includes("אבחון")) {
+      console.log("DropdownCell - סוג איבחון - allOptions:", allOptions);
+      console.log("DropdownCell - סוג איבחון - value:", value);
+      console.log("DropdownCell - סוג איבחון - selected:", selected);
+    }
+  }, [allOptions, value, selected]);
 
   const handleCreate = (inputValue) => {
     const newOption = { value: inputValue, label: inputValue, color: "#f2f2f2" };

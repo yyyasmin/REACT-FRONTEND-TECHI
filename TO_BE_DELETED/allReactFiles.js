@@ -89,13 +89,6 @@ const HandleCell = ({ type, value, options, onChange }) => {
   const normalizedValue = normalizeValue(value, cellType);
   const normalizedOptions = normalizeOptions(options);
 
-  // Debug logging for "סוג איבחון"
-  if (cellType === "dropdown" && options && Array.isArray(options) && options.length > 0 && options[0]?.label?.includes("אבחון")) {
-    console.log("HandleCell - סוג איבחון - raw options:", options);
-    console.log("HandleCell - סוג איבחון - normalizedOptions:", normalizedOptions);
-    console.log("HandleCell - סוג איבחון - normalizedValue:", normalizedValue);
-  }
-
   switch (cellType) {
     case "text":
       return <TextCell value={normalizedValue} onChange={handleChange} />;
