@@ -7,13 +7,15 @@ import AddRowBtn from "./AddRowBtn";
 const TableContainer = styled.div`
   margin: 0 auto;
   width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
+  max-width: ${props => props.isIndividualTable ? 'none' : '100%'}; /* Remove max-width constraint for individual table */
+  overflow-x: ${props => props.isIndividualTable ? 'visible' : 'auto'}; /* Allow overflow for individual table */
+  overflow-y: visible;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto; /* Allow columns to size based on content */
 `;
 
 const Th = styled.th`
@@ -21,7 +23,7 @@ const Th = styled.th`
   padding: 12px;
   text-align: center;
   background-color: #f2f7ff;
-  min-width: 150px;
+  min-width: ${props => props.isIndividualTable ? '130px' : '160px'}; /* Even smaller for individual table */
   white-space: nowrap;
   font-size: 14px;
 `;
@@ -31,11 +33,11 @@ const Td = styled.td`
   padding: 8px;
   text-align: center;
   vertical-align: top;
-  min-width: 150px;
+  min-width: ${props => props.isIndividualTable ? '130px' : '160px'}; /* Even smaller for individual table */
 `;
 
 // --------------------- HorizontalTable Component ---------------------
-const HorizontalTable = ({ headers, data, tableName, std_id, allFields, allGoalsMap, allActivitiesMap }) => {
+const HorizontalTable = ({ headers, data, tableName, std_id, allFields, allGoalsMap, allActivitiesMap, onDataChange }) => {
   // --------------------- State ---------------------
   const [rows, setRows] = useState(data.map((row) => row.cells));
 
@@ -312,7 +314,7 @@ const HorizontalTable = ({ headers, data, tableName, std_id, allFields, allGoals
 
   // --------------------- Render ---------------------
   return (
-    <TableContainer>
+    <TableContainer isIndividualTable={tableName === "תכנית חינוכית יחידנית" || tableName === "תוכנית לימודית אישית"}>
       <AddRowBtn
         std_id={std_id}
         table_name={tableName}
@@ -329,7 +331,7 @@ const HorizontalTable = ({ headers, data, tableName, std_id, allFields, allGoals
         <thead>
           <tr>
             {headers.map((h, i) => (
-              <Th key={i}>{h}</Th>
+              <Th key={i} isIndividualTable={tableName === "תכנית חינוכית יחידנית" || tableName === "תוכנית לימודית אישית"}>{h}</Th>
             ))}
           </tr>
         </thead>
@@ -351,7 +353,7 @@ const HorizontalTable = ({ headers, data, tableName, std_id, allFields, allGoals
                 }
                 
                 return (
-                  <Td key={colIndex}>
+                  <Td key={colIndex} isIndividualTable={tableName === "תכנית חינוכית יחידנית" || tableName === "תוכנית לימודית אישית"}>
              {colIndex === 0 && (tableName === "תכנית חינוכית יחידנית" || tableName === "תוכנית לימודית אישית") && allFields ? (
                <HandleCell
                  type="dropdown"

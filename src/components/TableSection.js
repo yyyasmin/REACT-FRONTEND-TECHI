@@ -4,18 +4,19 @@ import HorizontalTable from "./tables/HorizontalTable";
 import VerticalTable from "./tables/VerticalTable";
 
 const Section = styled.div`
-  margin: 20px auto;
+  margin: ${props => props.isIndividualTable ? '5px -20px 5px -60px' : '20px auto'}; /* Even more negative margin on left (end in RTL) to expand leftward */
   border: 2px solid #ccc;
   border-radius: 12px;
-  padding: 18px;
+  padding: ${props => props.isIndividualTable ? '8px' : '18px'}; /* Minimal padding for individual table */
   background-color: #f9f9fa;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  width: 85%;
-  max-width: 85%;
+  width: ${props => props.isIndividualTable ? 'calc(100% + 80px)' : '90%'}; /* Extend even more into parent padding for individual table */
+  max-width: ${props => props.isIndividualTable ? 'calc(100% + 80px)' : '90%'};
   direction: rtl;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: ${props => props.isIndividualTable ? 'stretch' : 'center'}; /* Stretch for individual table to use full width */
+  overflow-x: visible; /* Allow horizontal overflow if needed */
 `;
 
 const SectionTitle = styled.h2`
@@ -170,7 +171,7 @@ const TableSection = ({ table }) => {
   }
 
   return (
-    <Section>
+    <Section isIndividualTable={table.table_name === "תכנית חינוכית יחידנית" || table.table_name === "תוכנית לימודית אישית"}>
       <SectionTitle>{table.table_name}</SectionTitle>
       {table.direction === "horizontal" ? (
 <HorizontalTable

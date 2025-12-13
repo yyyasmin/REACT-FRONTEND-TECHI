@@ -84,7 +84,7 @@ const App = () => {
   };
 
   return (
-    <div style={{ padding: "20px", marginLeft: "300px", width: "calc(100% - 300px)" }}>
+    <div style={{ padding: "20px", marginLeft: "300px", width: "calc(100vw - 300px)", maxWidth: "none", overflowX: "visible", boxSizing: "border-box" }}>
       <div style={{ marginBottom: "20px", display: "flex", gap: "12px" }}>
         <ExistingStdSelector
           stds={stds} // ✅ changed
